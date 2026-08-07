@@ -9,7 +9,7 @@ import numpy as np
 class BERTClassifier(nn.Module):
     def __init__(self, model_name):
         super().__init__()
-        self.encoder = AutoModel.from_pretrained(model_name)
+        self.encoder = AutoModel.from_pretrained(model_name, local_files_only=True)  # OI-4(a)
         self.classifier = nn.Sequential(nn.Dropout(0.1), nn.Linear(self.encoder.config.hidden_size, 1))
     def forward(self, input_ids, attention_mask):
         outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
@@ -28,7 +28,7 @@ class AbstractDataset(Dataset):
         return {"input_ids": encoding["input_ids"].squeeze(0), "attention_mask": encoding["attention_mask"].squeeze(0), "label": torch.tensor(int(rec["label"]), dtype=torch.float32)}
 
 def eval_model(model_path, model_name, records, device, thresh=0.36):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)  # OI-4(a)
     model = BERTClassifier(model_name)
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=False)["model_state_dict"])
     model.to(device)
@@ -57,11 +57,12 @@ def eval_model(model_path, model_name, records, device, thresh=0.36):
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    with open("data/final_v2_period_stripped/cancer_pm_test.json", "r", encoding="utf-8") as f: test_records = json.load(f)
-    with open("data/final_v2_period_stripped/cancer_pm_holdout.json", "r", encoding="utf-8") as f: holdout_records = json.load(f)
+    # OI-4(b): canonical data paths
+    with open("data/processed/cancer_pm_test.json", "r", encoding="utf-8") as f: test_records = json.load(f)
+    with open("data/processed/cancer_pm_holdout.json", "r", encoding="utf-8") as f: holdout_records = json.load(f)
 
     # For stratified test
-    with open("data/final_v2_period_stripped/journal_to_nlm.json", "r", encoding="utf-8") as f: nlm2raw = {v: k for k, v in json.load(f).items()}
+    with open("data/processed/journal_to_nlm.json", "r", encoding="utf-8") as f: nlm2raw = {v: k for k, v in json.load(f).items()}
     import csv
     j2p = {}
     with open("data/raw/rwdb/retraction_watch.csv", "r", encoding="utf-8", errors="replace") as f:
@@ -81,42 +82,74 @@ def main():
     test_s = [r for r in test_records if get_publisher(r) == 'Spandidos']
     test_o = [r for r in test_records if get_publisher(r) not in ['Hindawi', 'Spandidos']]
 
+    # OI-4(c): load val-optimal thresholds from training JSONs; do NOT use hardcoded 0.36
+    import os as _os
+    with open("results/pubmedbert_finetuned_results.json") as _f:
+        _pm_thresh = json.load(_f)["best_threshold"]   # 0.28
+    with open("results/scibert_finetuned_results.json") as _f:
+        _sci_thresh = json.load(_f)["best_threshold"]  # 0.23
+
     print("--- PubMedBERT (Epoch 3) ---")
+    print(f"    Using val-optimal threshold: {_pm_thresh:.4f}")
     pm_path = "models/pubmedbert_epoch_3.pt"
     pm_name = "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext"
     
-    res = eval_model(pm_path, pm_name, test_records, device)
-    print(f"Test Global: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}, PR-AUC={res['pr_auc']:.4f}")
-    
-    res = eval_model(pm_path, pm_name, test_h, device)
+    res_pm_global    = eval_model(pm_path, pm_name, test_records,  device, thresh=_pm_thresh)
+    print(f"Test Global: Prec={res_pm_global['prec']:.4f}, Rec={res_pm_global['rec']:.4f}, F1={res_pm_global['f1']:.4f}, AUC={res_pm_global['auc']:.4f}, PR-AUC={res_pm_global['pr_auc']:.4f}")
+
+    res = eval_model(pm_path, pm_name, test_h, device, thresh=_pm_thresh)
     print(f"Test Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(pm_path, pm_name, test_s, device)
+
+    res = eval_model(pm_path, pm_name, test_s, device, thresh=_pm_thresh)
     print(f"Test Spandidos: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(pm_path, pm_name, test_o, device)
+
+    res = eval_model(pm_path, pm_name, test_o, device, thresh=_pm_thresh)
     print(f"Test Others: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(pm_path, pm_name, holdout_records, device)
-    print(f"Holdout Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}, PR-AUC={res['pr_auc']:.4f}")
+
+    res_pm_holdout = eval_model(pm_path, pm_name, holdout_records, device, thresh=_pm_thresh)
+    print(f"Holdout Hindawi: Prec={res_pm_holdout['prec']:.4f}, Rec={res_pm_holdout['rec']:.4f}, F1={res_pm_holdout['f1']:.4f}, AUC={res_pm_holdout['auc']:.4f}, PR-AUC={res_pm_holdout['pr_auc']:.4f}")
     
     print("\n--- SciBERT (Epoch 3) ---")
+    print(f"    Using val-optimal threshold: {_sci_thresh:.4f}")
     sci_path = "models/scibert_epoch_3.pt"
     sci_name = "allenai/scibert_scivocab_uncased"
-    
-    res = eval_model(sci_path, sci_name, test_records, device)
-    print(f"Test Global: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}, PR-AUC={res['pr_auc']:.4f}")
-    
-    res = eval_model(sci_path, sci_name, test_h, device)
+
+    res_sci_global = eval_model(sci_path, sci_name, test_records,  device, thresh=_sci_thresh)
+    print(f"Test Global: Prec={res_sci_global['prec']:.4f}, Rec={res_sci_global['rec']:.4f}, F1={res_sci_global['f1']:.4f}, AUC={res_sci_global['auc']:.4f}, PR-AUC={res_sci_global['pr_auc']:.4f}")
+
+    res = eval_model(sci_path, sci_name, test_h, device, thresh=_sci_thresh)
     print(f"Test Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(sci_path, sci_name, test_s, device)
+
+    res = eval_model(sci_path, sci_name, test_s, device, thresh=_sci_thresh)
     print(f"Test Spandidos: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(sci_path, sci_name, test_o, device)
+
+    res = eval_model(sci_path, sci_name, test_o, device, thresh=_sci_thresh)
     print(f"Test Others: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
-    
-    res = eval_model(sci_path, sci_name, holdout_records, device)
-    print(f"Holdout Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}, PR-AUC={res['pr_auc']:.4f}")
+
+    res_sci_holdout = eval_model(sci_path, sci_name, holdout_records, device, thresh=_sci_thresh)
+    print(f"Holdout Hindawi: Prec={res_sci_holdout['prec']:.4f}, Rec={res_sci_holdout['rec']:.4f}, F1={res_sci_holdout['f1']:.4f}, AUC={res_sci_holdout['auc']:.4f}, PR-AUC={res_sci_holdout['pr_auc']:.4f}")
+
+    # OI-4(d): write JSON output so future runs are diffable against thesis values
+    _os.makedirs("results", exist_ok=True)
+    output = {
+        "thresholds_used": {"pubmedbert": float(_pm_thresh), "scibert": float(_sci_thresh)},
+        "pubmedbert": {
+            "test_global":  res_pm_global,
+            "test_hindawi": eval_model(pm_path, pm_name, test_h, device, thresh=_pm_thresh),
+            "test_spandidos": eval_model(pm_path, pm_name, test_s, device, thresh=_pm_thresh),
+            "test_others":  eval_model(pm_path, pm_name, test_o, device, thresh=_pm_thresh),
+            "holdout":      res_pm_holdout,
+        },
+        "scibert": {
+            "test_global":  res_sci_global,
+            "test_hindawi": eval_model(sci_path, sci_name, test_h, device, thresh=_sci_thresh),
+            "test_spandidos": eval_model(sci_path, sci_name, test_s, device, thresh=_sci_thresh),
+            "test_others":  eval_model(sci_path, sci_name, test_o, device, thresh=_sci_thresh),
+            "holdout":      res_sci_holdout,
+        },
+    }
+    with open("results/finetuned_test_results.json", "w", encoding="utf-8") as _jf:
+        json.dump(output, _jf, indent=2)
+    print("\nResults written to results/finetuned_test_results.json")
 
 if __name__ == "__main__": main()
