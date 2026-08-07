@@ -117,6 +117,8 @@ Le classifieur principal est un modèle linéaire robuste (Régression Logistiqu
 | **3 000.0** | 0.02 | 52,17% | 35,44% | 93,02% | 60,29% |
 | **10 000.0** | 0.01 | 52,44% | 35,98% | 93,02% | 60,52% |
 
+> **Note de reproductibilité (Tableau balayage min_df=2) :** Le script ayant produit ce tableau n'est pas récupérable à partir de l'historique Git disponible. Ce balayage à 8 points avec décomposition par strate (Hindawi / Spandidos / Others) ne peut pas être reproduit de manière indépendante à partir des artefacts versionnés. Les valeurs présentées ne doivent pas être citées comme résultats vérifiables ; elles constituent des données de contexte d'exploration dont la provenance est non vérifiable.
+
 *Analyse du point d'inflexion :* Le score F1 global atteint son maximum à $C=300$ (55,30%), poussé par l'amélioration de la strate "Others". Cependant, au-delà de $C=10$, la performance sur le stratum Hindawi décline de manière continue (chutant de 41,58% à 35,98%). De plus, pour des valeurs de $C \ge 100$, le seuil de décision optimal s'effondre vers des valeurs aberrantes (0.10, 0.02, 0.01), indiquant que les probabilités prédites se concentrent anormalement près de zéro à cause d'un surapprentissage massif.
 
 Pour examiner le comportement de régularisation après filtrage du vocabulaire à `min_df=5`, nous avons effectué un sous-balayage de $C$ sur ce nouveau vecteur.
@@ -130,6 +132,8 @@ Pour examiner le comportement de régularisation après filtrage du vocabulaire 
 | **30.0** | 0.32 | 53,67% | 40,93% | 85,00% | **61,54%** |
 | **100.0** | 0.21 | 53,26% | 40,62% | 82,93% | 60,74% |
 | **300.0** | 0.15 | 52,91% | 40,15% | 82,93% | 60,67% |
+
+> **Note de reproductibilité (Tableau sous-balayage min_df=5) :** Le script ayant produit ce tableau n'est pas récupérable à partir de l'historique Git disponible. Le script auditable `exhaustive_search.py` (commit `646d176`) couvre bien un sous-ensemble de ces valeurs de $C$ avec `min_df=5`, mais ne produit que les métriques globales — il ne génère pas la décomposition par strate (Hindawi / Spandidos / Others) présentée ici. Ce tableau ne peut donc pas être reproduit de manière indépendante à partir des artefacts versionnés. La sélection de $C=15.0$ reste validée par `exhaustive_search.py` sur l'ensemble de validation uniquement, mais la décomposition stratifiée du tableau ci-dessus est non reproductible.
 
 *Justification du modèle sélectionné :* Le modèle d'origine ($C=10.0$) souffrait d'une grave fuite de données de test (test-set leakage) lors de la sélection des hyperparamètres, l'optimisation ayant secrètement ciblé les métriques de l'ensemble de test et de Hindawi. Ses évaluations en généralisation sont donc invalides. Le modèle corrigé ($C=15.0$) a été rigoureusement sélectionné sur le seul ensemble de validation via un script auditable (`exhaustive_search.py`). Il permet d'atteindre un score F1 global de 54,64% tout en préservant l'intégrité de l'évaluation sur l'ensemble de test.
 
