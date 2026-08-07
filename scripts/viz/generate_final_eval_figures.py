@@ -90,14 +90,15 @@ def main():
     probs_base = clf_base.predict_proba(X_val_base)[:, 1]
     preds_base = (probs_base >= 0.37).astype(int)
 
-    # TF-IDF Combiné
-    vec_comb = TfidfVectorizer(ngram_range=(1, 2), min_df=5, sublinear_tf=True)
-    X_train_comb = vec_comb.fit_transform(train_texts)
-    X_val_comb = vec_comb.transform(val_texts)
-    clf_comb = LogisticRegression(C=10.0, max_iter=2000, class_weight="balanced", random_state=42)
-    clf_comb.fit(X_train_comb, train_labels)
-    probs_comb = clf_comb.predict_proba(X_val_comb)[:, 1]
-    preds_comb = (probs_comb >= 0.36).astype(int)
+    # TF-IDF Combiné — load canonical C=15.0 model (do not re-train at C=10.0)
+    import joblib as _jl
+    _md = _jl.load(os.path.join(models_dir, "tfidf_combined.joblib"))
+    vec_comb    = _md["vectorizer"]
+    clf_comb    = _md["classifier"]
+    _comb_thresh = _md["threshold"]  # 0.35
+    X_val_comb  = vec_comb.transform(val_texts)
+    probs_comb  = clf_comb.predict_proba(X_val_comb)[:, 1]
+    preds_comb  = (probs_comb >= _comb_thresh).astype(int)
 
     # Char N-grams
     vec_char = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), min_df=2, sublinear_tf=True)
@@ -106,7 +107,15 @@ def main():
     clf_char = LogisticRegression(C=1.0, max_iter=2000, class_weight="balanced", random_state=42)
     clf_char.fit(X_train_char, train_labels)
     probs_char = clf_char.predict_proba(X_val_char)[:, 1]
-    preds_char = (probs_char >= 0.58).astype(int)
+    # Val-optimal threshold sweep (do not hardcode)
+    _char_best_thresh, _char_best_f1 = 0.5, 0.0
+    for _t in np.arange(0.1, 0.9, 0.01):
+        _p = (probs_char >= _t).astype(int)
+        _f = f1_score(val_labels, _p, zero_division=0)
+        if _f > _char_best_f1:
+            _char_best_f1 = _f
+            _char_best_thresh = round(float(_t), 2)
+    preds_char = (probs_char >= _char_best_thresh).astype(int)
 
     # MiniLM
     print("Encoding MiniLM...")
@@ -134,7 +143,15 @@ def main():
     clf_pm = LogisticRegression(C=1.0, max_iter=2000, class_weight="balanced", random_state=42)
     clf_pm.fit(X_train_pm, train_labels)
     probs_pm = clf_pm.predict_proba(X_val_pm)[:, 1]
-    preds_pm = (probs_pm >= 0.58).astype(int)
+    # Val-optimal threshold sweep for PubMedBERT (do not hardcode)
+    _pm_best_thresh, _pm_best_f1 = 0.5, 0.0
+    for _t in np.arange(0.1, 0.9, 0.01):
+        _p = (probs_pm >= _t).astype(int)
+        _f = f1_score(val_labels, _p, zero_division=0)
+        if _f > _pm_best_f1:
+            _pm_best_f1 = _f
+            _pm_best_thresh = round(float(_t), 2)
+    preds_pm = (probs_pm >= _pm_best_thresh).astype(int)
 
     # Load SVM and XGBoost results
     with open(os.path.join(models_dir, 'classical_baselines_results.json'), "r", encoding="utf-8") as f:

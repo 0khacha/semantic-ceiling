@@ -52,7 +52,16 @@ def main():
     clf_char = LogisticRegression(C=1.0, max_iter=2000, class_weight="balanced", random_state=42)
     clf_char.fit(X_train_char, train_labels)
     probs_char = clf_char.predict_proba(X_val_char)[:, 1]
-    preds_char = (probs_char >= 0.58).astype(int)
+    # Val-optimal threshold sweep for Char N-grams (do not hardcode)
+    _char_best_thresh, _char_best_f1 = 0.5, 0.0
+    for _t in np.arange(0.1, 0.9, 0.01):
+        _p = (probs_char >= _t).astype(int)
+        _f = f1_score(val_labels, _p, zero_division=0)
+        if _f > _char_best_f1:
+            _char_best_f1 = _f
+            _char_best_thresh = round(float(_t), 2)
+    print(f"  Char N-grams val-optimal threshold: {_char_best_thresh} (F1={_char_best_f1:.4f})")
+    preds_char = (probs_char >= _char_best_thresh).astype(int)
 
     # 4. Train PubMedBERT (frozen)
     print("Extracting PubMedBERT frozen embeddings and training Logistic Regression (C=1.0)...")
@@ -63,8 +72,16 @@ def main():
     clf_pm.fit(X_train_pm, train_labels)
     probs_pm = clf_pm.predict_proba(X_val_pm)[:, 1]
     
-    # Replicated predictions using the standard threshold of 0.58
-    preds_pm = (probs_pm >= 0.58).astype(int)
+    # Val-optimal threshold sweep for PubMedBERT (do not hardcode)
+    _pm_best_thresh, _pm_best_f1 = 0.5, 0.0
+    for _t in np.arange(0.1, 0.9, 0.01):
+        _p = (probs_pm >= _t).astype(int)
+        _f = f1_score(val_labels, _p, zero_division=0)
+        if _f > _pm_best_f1:
+            _pm_best_f1 = _f
+            _pm_best_thresh = round(float(_t), 2)
+    print(f"  PubMedBERT val-optimal threshold:   {_pm_best_thresh} (F1={_pm_best_f1:.4f})")
+    preds_pm = (probs_pm >= _pm_best_thresh).astype(int)
 
     print("\n" + "="*50)
     print("REPLICATED METRICS (Validation)")
