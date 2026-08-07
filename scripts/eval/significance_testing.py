@@ -65,9 +65,9 @@ def main():
 
     # 4. Train PubMedBERT (frozen)
     print("Extracting PubMedBERT frozen embeddings and training Logistic Regression (C=1.0)...")
-    model = SentenceTransformer("pritamdeka/S-PubMedBert-MS-MARCO")
-    X_train_pm = model.encode(train_texts, batch_size=32, show_progress_bar=False)
-    X_val_pm = model.encode(val_texts, batch_size=32, show_progress_bar=False)
+    model = SentenceTransformer("pritamdeka/S-PubMedBert-MS-MARCO", local_files_only=True)
+    X_train_pm = model.encode(train_texts, batch_size=32, show_progress_bar=True)
+    X_val_pm = model.encode(val_texts, batch_size=32, show_progress_bar=True)
     clf_pm = LogisticRegression(C=1.0, max_iter=2000, class_weight="balanced", random_state=42)
     clf_pm.fit(X_train_pm, train_labels)
     probs_pm = clf_pm.predict_proba(X_val_pm)[:, 1]
