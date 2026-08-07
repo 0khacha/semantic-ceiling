@@ -189,10 +189,10 @@ def main():
         }
     }
     
-    os.makedirs("models", exist_ok=True)
-    with open("models/significance_results.json", "w") as f:
+    os.makedirs("results", exist_ok=True)
+    with open("results/significance_results.json", "w") as f:
         json.dump(results, f, indent=2)
-    print("\nSignificance testing results saved to models/significance_results.json")
+    print("\nSignificance testing results saved to results/significance_results.json")
 
 if __name__ == "__main__":
     main()
