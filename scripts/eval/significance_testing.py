@@ -11,9 +11,9 @@ def main():
     print("="*80)
     # Load data
     print("Loading datasets...")
-    with open("data/final/cancer_pm_train.json", "r", encoding="utf-8") as f:
+    with open("data/processed/cancer_pm_train.json", "r", encoding="utf-8") as f:
         train = json.load(f)
-    with open("data/final/cancer_pm_val.json", "r", encoding="utf-8") as f:
+    with open("data/processed/cancer_pm_val.json", "r", encoding="utf-8") as f:
         val = json.load(f)
 
     train_texts = [r["title"] + " " + r["abstract"] for r in train]
@@ -33,15 +33,16 @@ def main():
     probs_base = clf_base.predict_proba(X_val_base)[:, 1]
     preds_base = (probs_base >= 0.37).astype(int)
 
-    # 2. Train TF-IDF Combiné
-    print("Training TF-IDF Combiné (min_df=5, C=10.0)...")
-    vec_comb = TfidfVectorizer(ngram_range=(1, 2), min_df=5, sublinear_tf=True)
-    X_train_comb = vec_comb.fit_transform(train_texts)
+    # 2. TF-IDF Combiné — load canonical C=15.0 model from joblib (do not re-train)
+    print("Loading TF-IDF Combiné C=15.0 from models/tfidf_combined.joblib...")
+    import joblib as _joblib
+    _model_data = _joblib.load("models/tfidf_combined.joblib")
+    vec_comb = _model_data["vectorizer"]
+    clf_comb = _model_data["classifier"]
+    _frozen_thresh = _model_data["threshold"]
     X_val_comb = vec_comb.transform(val_texts)
-    clf_comb = LogisticRegression(C=10.0, max_iter=2000, class_weight="balanced", random_state=42)
-    clf_comb.fit(X_train_comb, train_labels)
     probs_comb = clf_comb.predict_proba(X_val_comb)[:, 1]
-    preds_comb = (probs_comb >= 0.36).astype(int)
+    preds_comb = (probs_comb >= _frozen_thresh).astype(int)
 
     # 3. Train Character N-grams
     print("Training Character N-grams (char_wb 3-5, C=1.0)...")

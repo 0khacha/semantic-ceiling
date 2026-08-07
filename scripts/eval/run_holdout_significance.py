@@ -49,9 +49,9 @@ def get_bert_probs(model_path, model_name, records, device):
     return np.array(all_probs)
 
 def main():
-    with open("data/final_v2_period_stripped/cancer_pm_train.json", "r", encoding="utf-8") as f:
+    with open("data/processed/cancer_pm_train.json", "r", encoding="utf-8") as f:
         train = json.load(f)
-    with open("data/final_v2_period_stripped/cancer_pm_holdout.json", "r", encoding="utf-8") as f:
+    with open("data/processed/cancer_pm_holdout.json", "r", encoding="utf-8") as f:
         holdout = json.load(f)
 
     train_texts = [r["title"] + " " + r["abstract"] for r in train]
@@ -59,14 +59,15 @@ def main():
     holdout_texts = [r["title"] + " " + r["abstract"] for r in holdout]
     holdout_labels = np.array([r["label"] for r in holdout])
 
-    print("Training TF-IDF Combiné (min_df=5, C=10.0)...")
-    vec_comb = TfidfVectorizer(ngram_range=(1, 2), min_df=5, sublinear_tf=True)
-    X_train_comb = vec_comb.fit_transform(train_texts)
+    import joblib as _joblib
+    print("Loading TF-IDF Combiné C=15.0 from models/tfidf_combined.joblib...")
+    _model_data = _joblib.load("models/tfidf_combined.joblib")
+    vec_comb = _model_data["vectorizer"]
+    clf_comb = _model_data["classifier"]
+    _frozen_thresh = _model_data["threshold"]
     X_holdout_comb = vec_comb.transform(holdout_texts)
-    clf_comb = LogisticRegression(C=10.0, max_iter=2000, class_weight="balanced", random_state=42)
-    clf_comb.fit(X_train_comb, train_labels)
     probs_comb = clf_comb.predict_proba(X_holdout_comb)[:, 1]
-    preds_comb = (probs_comb >= 0.36).astype(int)
+    preds_comb = (probs_comb >= _frozen_thresh).astype(int)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Getting PubMedBERT Epoch 3 probs on Holdout...")
