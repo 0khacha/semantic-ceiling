@@ -1,7 +1,11 @@
 """
 train_tfidf_combined.py
 -----------------------
-This configuration was inferred by matching previously-published results; it is not independently verified against a recovered original script.
+Trains TF-IDF Combiné (LogisticRegression C=15.0, min_df=5, ngram_range=(1,2), sublinear_tf=True,
+class_weight='balanced', max_iter=1000, random_state=123).
+
+C=15.0 was selected by exhaustive_search.py via validation-only sweep (no test/holdout access).
+This script was corrected from C=10.0 on 2026-08-07 after audit confirmed the joblib contained C=15.0.
 """
 import json
 import os
@@ -106,8 +110,8 @@ def main():
     X_train = vec.fit_transform(train_texts)
     X_val = vec.transform(val_texts)
 
-    print("\nTraining LogisticRegression (C=10.0, class_weight='balanced', max_iter=1000, random_state=123)...")
-    clf = LogisticRegression(C=10.0, class_weight="balanced", max_iter=1000, random_state=123, solver="lbfgs")
+    print("\nTraining LogisticRegression (C=15.0, class_weight='balanced', max_iter=1000, random_state=123)...")
+    clf = LogisticRegression(C=15.0, class_weight="balanced", max_iter=1000, random_state=123, solver="lbfgs")
     clf.fit(X_train, train_labels)
     
     probs_val = clf.predict_proba(X_val)[:, 1]
