@@ -1,4 +1,4 @@
-﻿# Cancer Paper Mill Detection Dataset (CPM-11K) & Diagnostics Pipeline
+# Cancer Paper Mill Detection Dataset (CPM-11K) & Diagnostics Pipeline
 
 > **Status:** Research artifact accompanying a thesis chapter. Not a maintained production tool.
 
@@ -16,7 +16,7 @@ Text-based detection (titles + abstracts) works extremely well against **content
 
 ### Validation Set (N = 1,440 · 252 pos / 1,188 neg)
 
-All ten trained models evaluated on the held-aside validation partition. Decision threshold selected on validation by sweeping [0.1, 0.9), then frozen. These are the numbers used for model selection, hyperparameter decisions, and significance testing. Source: `docs/THESIS_CHAPTER.md` §4.3 table (lines 154–165), with SVM and XGBoost cross-verified against `results/classical_baselines_results.json`, Combined TF-IDF cross-verified against `results/tfidf_combined_results.json`, and fine-tuned models cross-verified against `results/pubmedbert_finetuned_results.json` / `results/scibert_finetuned_results.json`.
+All ten trained models evaluated on the held-aside validation partition. Decision threshold selected on validation by sweeping [0.1, 0.9), then frozen. These are the numbers used for model selection, hyperparameter decisions, and significance testing. Source: `docs/THESIS_CHAPTER.md` §4.3 table (lines 143–154), with SVM and XGBoost cross-verified against `results/classical_baselines_results.json`, Combined TF-IDF cross-verified against `results/tfidf_combined_results.json`, and fine-tuned models cross-verified against `results/pubmedbert_finetuned_results.json` / `results/scibert_finetuned_results.json`.
 
 > [!NOTE]
 > **Methodology Note: Historical Reproducibility Issue (Identified and Resolved)**
@@ -39,13 +39,13 @@ All ten trained models evaluated on the held-aside validation partition. Decisio
 | PubMedBERT (fine-tuned, 3 epochs) | 47.26%¹ | 65.08%¹ | 54.76% | 83.72% |
 | SciBERT (fine-tuned, 3 epochs) | 51.70%¹ | 60.32%¹ | 55.68% | 84.47% |
 
-> ¹ **Precision and recall for the fine-tuned models:** The thesis text (§4.3, lines 164–165) reports P=48.02%/R=63.89% for PubMedBERT and P=52.61%/R=59.13% for SciBERT. The values in this table come directly from `pubmedbert_finetuned_results.json → overall.{precision,recall}` and `scibert_finetuned_results.json → overall.{precision,recall}`. The discrepancy is due to the thesis reporting P/R at each model's own optimal threshold (0.28 for PubMedBERT, 0.23 for SciBERT), while the JSON records metrics at the model's own best threshold. F1 and AUC are consistent across both sources.
+> ¹ **Precision and recall for the fine-tuned models:** The thesis text (§4.3, lines 152–153) reports P=48.02%/R=63.89% for PubMedBERT and P=52.61%/R=59.13% for SciBERT. The values in this table come directly from `pubmedbert_finetuned_results.json → overall.{precision,recall}` and `scibert_finetuned_results.json → overall.{precision,recall}`. The discrepancy is due to the thesis reporting P/R at each model's own optimal threshold (0.28 for PubMedBERT, 0.23 for SciBERT), while the JSON records metrics at the model's own best threshold. F1 and AUC are consistent across both sources.
 
 #### Publisher-Stratified Metrics
 
 > The thesis mandates stratified reporting for this dataset — global metrics alone are misleading.
 
-Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; `classical_baselines_results.json → {svm,xgboost}.stratified.{hindawi,spandidos,others}.{f1,auc}` for SVM and XGBoost; `tfidf_combined_results.json → val.stratified.{hindawi,spandidos,others}.{f1,auc}` for Combined TF-IDF; `{pubmedbert,scibert}_finetuned_results.json → stratified.{hindawi,spandidos,others}.{f1,auc}` for fine-tuned models.
+Source: `THESIS_CHAPTER.md` §4.3 lines 161–171 for rows without a JSON file; `classical_baselines_results.json → {svm,xgboost}.stratified.{hindawi,spandidos,others}.{f1,auc}` for SVM and XGBoost; `tfidf_combined_results.json → val.stratified.{hindawi,spandidos,others}.{f1,auc}` for Combined TF-IDF; `{pubmedbert,scibert}_finetuned_results.json → stratified.{hindawi,spandidos,others}.{f1,auc}` for fine-tuned models.
 
 | Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; 
 
 ### Test Set (N = 1,440 · 252 pos / 1,188 neg · one-time access, threshold frozen at 0.35)
 
-The final test partition was accessed only once, after all model selection was finalized. Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+The final test partition was accessed only once, after all model selection was finalized. Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 #### Global Metrics
 
@@ -82,7 +82,7 @@ The final test partition was accessed only once, after all model selection was f
 
 #### Publisher-Stratified Metrics
 
-Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302.
+Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296.
 
 | Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
 |---|---|---|---|
@@ -95,7 +95,7 @@ Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302.
 
 ### Hindawi Holdout Generalization (N = 1,504 · 429 pos / 1,075 neg · fully withheld)
 
-Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS_CHAPTER.md` §5.6 prose, lines 310–313 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS_CHAPTER.md` §5.6 prose, lines 304–307 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 | Model | Precision | Recall | F1 | AUC |
 |---|---|---|---|---|
@@ -123,7 +123,7 @@ Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS
 
 ## Statistical Significance
 
-**McNemar's test + 95% bootstrap ΔF1 confidence intervals** comparing each model against **Combined TF-IDF (min_df=5, C=15.0)** as the reference. Computed on the **global validation set** (N=1,440). Source: `results/significance_results.json`, keys `mcnemar` and `bootstrap_ci`. The sign convention in the JSON is described in thesis §4.3 prose (lines 195–198): for the classical/frozen models, a positive bootstrap mean means Combined TF-IDF outperforms the compared model; for the fine-tuned models, a positive mean means the fine-tuned model slightly outperforms Combined TF-IDF.
+**McNemar's test + 95% bootstrap ΔF1 confidence intervals** comparing each model against **Combined TF-IDF (min_df=5, C=15.0)** as the reference. Computed on the **global validation set** (N=1,440). Source: `results/significance_results.json`, keys `mcnemar` and `bootstrap_ci`. The sign convention in the JSON is described in thesis §4.3 prose (lines 183–188): for the classical/frozen models, a positive bootstrap mean means Combined TF-IDF outperforms the compared model; for the fine-tuned models, a positive mean means the fine-tuned model slightly outperforms Combined TF-IDF.
 
 | Compared model | McNemar χ² | p-value | Direction | \|ΔF1\| mean | 95% CI |
 |---|---|---|---|---|---|
