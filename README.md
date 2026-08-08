@@ -65,7 +65,7 @@ Source: `THESIS_CHAPTER.md` §4.3 lines 161–171 for rows without a JSON file; 
 
 ### Test Set (N = 1,440 · 252 pos / 1,188 neg · one-time access, threshold frozen at 0.35)
 
-The final test partition was accessed only once, after all model selection was finalized. Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+The final test partition was accessed only once during original model development, after all model selection was finalized. (During the subsequent reproducibility audit — OI-4/OI-5 — the test set was re-evaluated to confirm that bug fixes reproduced identical results under the already-frozen model and threshold; no model, hyperparameter, or threshold was altered based on these verification runs.) Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 #### Global Metrics
 
@@ -95,7 +95,7 @@ Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296.
 
 ### Hindawi Holdout Generalization (N = 1,504 · 429 pos / 1,075 neg · fully withheld)
 
-Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS_CHAPTER.md` §5.6 prose, lines 304–307 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+Evaluated once at project end during original model development (§5.6), threshold frozen at 0.35. (During the subsequent reproducibility audit — OI-4/OI-5 — the holdout was re-evaluated to confirm bug fixes reproduced identical results under the frozen model and threshold; nothing was altered based on these runs.) Source: `THESIS_CHAPTER.md` §5.6 prose, lines 304–307 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 | Model | Precision | Recall | F1 | AUC |
 |---|---|---|---|---|

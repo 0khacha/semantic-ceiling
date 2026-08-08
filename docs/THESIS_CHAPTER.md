@@ -1,4 +1,4 @@
-﻿# Chapter: Automatic Detection of Paper Mills in Oncology Literature
+# Chapter: Automatic Detection of Paper Mills in Oncology Literature
 
 ## Abstract
 
@@ -285,7 +285,7 @@ These fraudulent articles do not describe stereotyped in vitro / in vivo experim
 *Conclusion:* Since these clinical modeling terms possess neutral or negative weights in the classifier (being associated with legitimate negative articles in clinical and translational oncology), paper mills that generate fake data analysis profiles entirely bypass lexical detection by blending perfectly into the mass of bioinformatics studies.
 
 ### 5.5. Final evaluation on the test set (Phase 9)
-The final performance of the models was measured on the test set (`cancer_pm_test.json`), which was accessed only once. The decision threshold was frozen on the validation set (0.35) before accessing the test and holdout sets. At the threshold thus fixed, the global and stratum-level performances structure as follows:
+The final performance of the models was measured on the test set (`cancer_pm_test.json`), which was accessed only once during original model development. (A later reproducibility audit — OI-4/OI-5 — re-evaluated the test set to confirm bug fixes reproduced identical results under the frozen model and threshold; no model, hyperparameter, or threshold was changed as a result.) The decision threshold was frozen on the validation set (0.35) before accessing the test and holdout sets. At the threshold thus fixed, the global and stratum-level performances structure as follows:
 
 #### Global and stratified performances on the Test set
 
