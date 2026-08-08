@@ -1,3 +1,10 @@
+"""
+Future Improvement Note:
+This script currently computes a global validation F1 score for the min_df=5 C-sweep.
+It could be extended to output stratified metrics (Hindawi, Spandidos, Others) by parsing 
+the publisher string from `cancer_pm_val.json` and computing the F1 score per stratum.
+This would make the min_df=5 sub-sweep table in the thesis fully reproducible instead of footnoted.
+"""
 import json
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
