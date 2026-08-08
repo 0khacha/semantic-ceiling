@@ -1,13 +1,8 @@
 """
 train_tfidf_combined.py
 -----------------------
-Trains TF-IDF Combiné (LogisticRegression C=15.0, min_df=5, ngram_range=(1,2), sublinear_tf=True,
-class_weight='balanced', max_iter=1000, random_state=123).
-
-C=15.0 was selected by exhaustive_search.py via validation-only sweep (no test/holdout access).
-Corrected from C=10.0 on 2026-08-07. The pre-existing joblib artifact contained C=15.0 and produced
-bit-for-bit identical metrics when reproduced from a clean run; the provenance of that prior artifact
-could not be fully traced through git history and should not be asserted as a confirmed training event.
+This is the canonical training script for the TF-IDF Combined model (C=15.0).
+It supersedes the unrecoverable original artifact.
 """
 import json
 import os
