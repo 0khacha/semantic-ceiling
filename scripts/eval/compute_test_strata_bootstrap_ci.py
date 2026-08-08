@@ -1,18 +1,20 @@
 """
 compute_test_strata_bootstrap_ci.py
-------------------------------------
-Computes 95% bootstrap confidence intervals (2,000 iterations, np.random.seed(42),
-matching the method in scripts/eval/significance_testing.py) for F1 on the
-TEST-SET Spandidos and Others strata, for TF-IDF Combiné.
+-----------------------------------
+WARNING: HISTORICAL DIAGNOSTIC ARTIFACT
+This script is intentionally hardcoded to the deprecated C=10.0, class_weight='balanced', 
+and threshold=0.36 configuration. It was written to forensically reproduce and audit the 
+older version of the thesis metrics.
 
-This answers the question: do the observed deltas between thesis numbers and
-recomputed numbers (Others F1 +1.25pp, Spandidos AUC -1.03pp) fall inside the
-natural sampling variance of these strata?
+DO NOT USE this script to generate current metrics. 
+The active canonical pipeline uses C=15.0, no class_weight, and threshold=0.35, 
+as evaluated in `eval_final_test.py` and `significance_testing.py`.
 
-Also re-runs with class_weight="balanced" (the correct original config) to confirm
-the threshold discrepancy root cause.
+Diagnostic script for:
+1. Issue 1 root cause (class_weight discrepancy)
+2. Issue 2 test-strata bootstrap validation against OLD thesis metrics.
 
-Output: results/test_strata_bootstrap_ci.json
+Output: results/test_strata_bootstrap_ci.json (Not tracked in git)
 """
 
 import csv
