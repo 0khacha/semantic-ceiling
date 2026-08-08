@@ -305,7 +305,7 @@ La performance finale des modèles a été mesurée sur l'ensemble de test (`can
 
 #### Performances globales et stratifiées sur l'ensemble de Test
 
-| Modèle | Métrique Globale (F1 / AUC) | Hindawi In-Pool (F1 / AUC) | Spandidos [Petit échantillon] (F1 / AUC) | Autres (F1 / AUC) |
+| Modèle (seuil commun *t* = 0,35) | Métrique Globale (F1 / AUC) | Hindawi In-Pool (F1 / AUC) | Spandidos [Petit échantillon] (F1 / AUC) | Autres (F1 / AUC) |
 | :--- | :---: | :---: | :---: | :---: |
 | **TF-IDF Combiné** | 49,45% / 79,60% | 38,98% / 65,78% | 81,25% / 97,16% | 54,61% / 89,21% |
 | **PubMedBERT (v2)** | 49,52% / 81,83% | 38,17% / 66,06% | 87,50% / 94,57% | 57,27% / 90,09% |
@@ -324,6 +324,24 @@ L'évaluation finale sur le pool de généralisation **Holdout Hindawi** ($N_{\t
 *   **Verdict :** **Tous les modèles, y compris les transformeurs profonds, échouent face à la baseline triviale** avec des scores F1 plafonnant entre 39,7 % et 42,0 %.
 
 L'analyse de la distribution des probabilités sur ce holdout montre une superposition presque parfaite des classes pour l'ensemble des algorithmes testés. Ce résultat est cohérent avec l'hypothèse d'une absence de signal exploitable par nos représentations textuelles dans le résumé pour ce type de fraude.
+
+> [!NOTE]
+> **Note complémentaire — Évaluation aux seuils de validation optimaux individuels.** Les tableaux de §5.5 et §5.6 appliquent un seuil de décision unique et figé (*t* = 0,35) à l'ensemble des modèles, permettant une comparaison équitable sous une règle opérationnelle commune. La présente note rapporte les mêmes modèles fine-tunés évalués à leur seuil optimal *individuel* déterminé par balayage sur l'ensemble de validation — PubMedBERT à *t* = 0,28, SciBERT à *t* = 0,23 (seuils issus de `results/pubmedbert_finetuned_results.json` et `scibert_finetuned_results.json`). **Ces résultats ne sont pas directement comparables entre modèles** (chacun étant évalué à son propre point d'opération) ni avec §5.5/§5.6 (opérant à *t* = 0,35) : la comparaison croisée des métriques F1, Précision et Rappel entre les deux tableaux refléterait une différence de seuil, et non de capacité de discrimination. *Les valeurs ROC-AUC sont indépendantes du seuil et sont par conséquent identiques à celles de §5.5/§5.6 — leur concordance exacte constitue une vérification de provenance confirmant que les modèles sous-jacents et les données sont identiques.* Artefact machine-généré : `results/finetuned_test_results.json` (commit `70fdf31`, 2026-08-08).
+
+#### Tableau complémentaire : Performances des modèles fine-tunés au seuil de validation optimal individuel (Ensemble de Test + Holdout Hindawi)
+
+| Modèle (seuil) | Ensemble | Précision | Rappel | F1 | ROC-AUC |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **PubMedBERT** (*t* = 0,28) | Test — Global | 43,30 % | 55,16 % | 48,52 % | 81,83 % |
+| | Test — Hindawi | 38,89 % | 41,79 % | 40,29 % | 66,06 % |
+| | Test — Spandidos | 93,33 % | 77,78 % | 84,85 % | 94,57 % |
+| | Test — Autres | 42,59 % | 69,00 % | 52,67 % | 90,09 % |
+| | Holdout Hindawi | 42,64 % | 45,22 % | 43,89 % | 67,48 % |
+| **SciBERT** (*t* = 0,23) | Test — Global | 49,82 % | 55,16 % | 52,35 % | 83,83 % |
+| | Test — Hindawi | 44,35 % | 41,04 % | 42,64 % | 70,42 % |
+| | Test — Spandidos | 92,31 % | 66,67 % | 77,42 % | 92,89 % |
+| | Test — Autres | 50,70 % | 72,00 % | 59,50 % | 90,75 % |
+| | Holdout Hindawi | 44,52 % | 44,52 % | 44,52 % | 66,77 % |
 
 ### 5.7. Limites méthodologiques et explications alternatives
 
