@@ -97,16 +97,16 @@ def main():
     res_pm_global    = eval_model(pm_path, pm_name, test_records,  device, thresh=_pm_thresh)
     print(f"Test Global: Prec={res_pm_global['prec']:.4f}, Rec={res_pm_global['rec']:.4f}, F1={res_pm_global['f1']:.4f}, AUC={res_pm_global['auc']:.4f}, PR-AUC={res_pm_global['pr_auc']:.4f}")
 
-    res = eval_model(pm_path, pm_name, test_h, device, thresh=_pm_thresh)
-    print(f"Test Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_pm_hindawi   = eval_model(pm_path, pm_name, test_h,        device, thresh=_pm_thresh)
+    print(f"Test Hindawi: Prec={res_pm_hindawi['prec']:.4f}, Rec={res_pm_hindawi['rec']:.4f}, F1={res_pm_hindawi['f1']:.4f}, AUC={res_pm_hindawi['auc']:.4f}")
 
-    res = eval_model(pm_path, pm_name, test_s, device, thresh=_pm_thresh)
-    print(f"Test Spandidos: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_pm_spandidos = eval_model(pm_path, pm_name, test_s,        device, thresh=_pm_thresh)
+    print(f"Test Spandidos: Prec={res_pm_spandidos['prec']:.4f}, Rec={res_pm_spandidos['rec']:.4f}, F1={res_pm_spandidos['f1']:.4f}, AUC={res_pm_spandidos['auc']:.4f}")
 
-    res = eval_model(pm_path, pm_name, test_o, device, thresh=_pm_thresh)
-    print(f"Test Others: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_pm_others    = eval_model(pm_path, pm_name, test_o,        device, thresh=_pm_thresh)
+    print(f"Test Others: Prec={res_pm_others['prec']:.4f}, Rec={res_pm_others['rec']:.4f}, F1={res_pm_others['f1']:.4f}, AUC={res_pm_others['auc']:.4f}")
 
-    res_pm_holdout = eval_model(pm_path, pm_name, holdout_records, device, thresh=_pm_thresh)
+    res_pm_holdout   = eval_model(pm_path, pm_name, holdout_records, device, thresh=_pm_thresh)
     print(f"Holdout Hindawi: Prec={res_pm_holdout['prec']:.4f}, Rec={res_pm_holdout['rec']:.4f}, F1={res_pm_holdout['f1']:.4f}, AUC={res_pm_holdout['auc']:.4f}, PR-AUC={res_pm_holdout['pr_auc']:.4f}")
     
     print("\n--- SciBERT (Epoch 3) ---")
@@ -114,38 +114,38 @@ def main():
     sci_path = "models/scibert_epoch_3.pt"
     sci_name = "allenai/scibert_scivocab_uncased"
 
-    res_sci_global = eval_model(sci_path, sci_name, test_records,  device, thresh=_sci_thresh)
+    res_sci_global    = eval_model(sci_path, sci_name, test_records,   device, thresh=_sci_thresh)
     print(f"Test Global: Prec={res_sci_global['prec']:.4f}, Rec={res_sci_global['rec']:.4f}, F1={res_sci_global['f1']:.4f}, AUC={res_sci_global['auc']:.4f}, PR-AUC={res_sci_global['pr_auc']:.4f}")
 
-    res = eval_model(sci_path, sci_name, test_h, device, thresh=_sci_thresh)
-    print(f"Test Hindawi: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_sci_hindawi   = eval_model(sci_path, sci_name, test_h,         device, thresh=_sci_thresh)
+    print(f"Test Hindawi: Prec={res_sci_hindawi['prec']:.4f}, Rec={res_sci_hindawi['rec']:.4f}, F1={res_sci_hindawi['f1']:.4f}, AUC={res_sci_hindawi['auc']:.4f}")
 
-    res = eval_model(sci_path, sci_name, test_s, device, thresh=_sci_thresh)
-    print(f"Test Spandidos: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_sci_spandidos = eval_model(sci_path, sci_name, test_s,         device, thresh=_sci_thresh)
+    print(f"Test Spandidos: Prec={res_sci_spandidos['prec']:.4f}, Rec={res_sci_spandidos['rec']:.4f}, F1={res_sci_spandidos['f1']:.4f}, AUC={res_sci_spandidos['auc']:.4f}")
 
-    res = eval_model(sci_path, sci_name, test_o, device, thresh=_sci_thresh)
-    print(f"Test Others: Prec={res['prec']:.4f}, Rec={res['rec']:.4f}, F1={res['f1']:.4f}, AUC={res['auc']:.4f}")
+    res_sci_others    = eval_model(sci_path, sci_name, test_o,         device, thresh=_sci_thresh)
+    print(f"Test Others: Prec={res_sci_others['prec']:.4f}, Rec={res_sci_others['rec']:.4f}, F1={res_sci_others['f1']:.4f}, AUC={res_sci_others['auc']:.4f}")
 
-    res_sci_holdout = eval_model(sci_path, sci_name, holdout_records, device, thresh=_sci_thresh)
+    res_sci_holdout   = eval_model(sci_path, sci_name, holdout_records, device, thresh=_sci_thresh)
     print(f"Holdout Hindawi: Prec={res_sci_holdout['prec']:.4f}, Rec={res_sci_holdout['rec']:.4f}, F1={res_sci_holdout['f1']:.4f}, AUC={res_sci_holdout['auc']:.4f}, PR-AUC={res_sci_holdout['pr_auc']:.4f}")
 
-    # OI-4(d): write JSON output so future runs are diffable against thesis values
+    # OI-4(d): write JSON — reuse first-pass named variables, no duplicate inference
     _os.makedirs("results", exist_ok=True)
     output = {
         "thresholds_used": {"pubmedbert": float(_pm_thresh), "scibert": float(_sci_thresh)},
         "pubmedbert": {
-            "test_global":  res_pm_global,
-            "test_hindawi": eval_model(pm_path, pm_name, test_h, device, thresh=_pm_thresh),
-            "test_spandidos": eval_model(pm_path, pm_name, test_s, device, thresh=_pm_thresh),
-            "test_others":  eval_model(pm_path, pm_name, test_o, device, thresh=_pm_thresh),
-            "holdout":      res_pm_holdout,
+            "test_global":    res_pm_global,
+            "test_hindawi":   res_pm_hindawi,
+            "test_spandidos": res_pm_spandidos,
+            "test_others":    res_pm_others,
+            "holdout":        res_pm_holdout,
         },
         "scibert": {
-            "test_global":  res_sci_global,
-            "test_hindawi": eval_model(sci_path, sci_name, test_h, device, thresh=_sci_thresh),
-            "test_spandidos": eval_model(sci_path, sci_name, test_s, device, thresh=_sci_thresh),
-            "test_others":  eval_model(sci_path, sci_name, test_o, device, thresh=_sci_thresh),
-            "holdout":      res_sci_holdout,
+            "test_global":    res_sci_global,
+            "test_hindawi":   res_sci_hindawi,
+            "test_spandidos": res_sci_spandidos,
+            "test_others":    res_sci_others,
+            "holdout":        res_sci_holdout,
         },
     }
     with open("results/finetuned_test_results.json", "w", encoding="utf-8") as _jf:
