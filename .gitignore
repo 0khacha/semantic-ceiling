@@ -34,3 +34,10 @@ archive/leaky_models_v1/
 # Large model checkpoints
 *.pt
 *_LOG.md
+
+# Backup files
+*.bak
+*.bak_pre_audit*
+
+# Local French thesis copy
+THESIS_CHAPTER_fr.md

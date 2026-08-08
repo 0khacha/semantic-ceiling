@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import numpy as np
 import torch
@@ -98,8 +98,8 @@ def main():
     probs_base = clf_base.predict_proba(X_val_base)[:, 1]
     preds_base = (probs_base >= 0.37).astype(int)
 
-    # 2. TF-IDF Combiné — load canonical C=15.0 model from joblib (do not re-train)
-    print("Loading TF-IDF Combiné C=15.0 from models/tfidf_combined.joblib...")
+    # 2. Combined TF-IDF — load canonical C=15.0 model from joblib (do not re-train)
+    print("Loading Combined TF-IDF C=15.0 from models/tfidf_combined.joblib...")
     import joblib as _joblib
     _model_data = _joblib.load("models/tfidf_combined.joblib")
     vec_comb = _model_data["vectorizer"]
@@ -178,7 +178,7 @@ def main():
     print("REPLICATED METRICS (Validation)")
     print("=" * 50)
     print(f"TF-IDF Baseline:          F1 = {f1_score(val_labels, preds_base):.4%}")
-    print(f"TF-IDF Combiné:           F1 = {f1_score(val_labels, preds_comb):.4%}")
+    print(f"Combined TF-IDF:           F1 = {f1_score(val_labels, preds_comb):.4%}")
     print(f"Char N-grams:             F1 = {f1_score(val_labels, preds_char):.4%}")
     print(f"PubMedBERT (frozen):      F1 = {f1_score(val_labels, preds_pm):.4%}")
     print(f"PubMedBERT (fine-tuned):  F1 = {f1_score(val_labels, preds_pm_ft):.4%}")
@@ -188,7 +188,7 @@ def main():
     # McNemar's Test (paired contingency tables)
     # =========================================================================
     print("\n" + "=" * 50)
-    print("MCNEMAR'S TEST RESULTS (vs. TF-IDF Combiné)")
+    print("MCNEMAR'S TEST RESULTS (vs. Combined TF-IDF)")
     print("=" * 50)
 
     def run_mcnemar(preds_a, preds_b, name_a, name_b):
@@ -208,11 +208,11 @@ def main():
         print(f"  Significant (p < 0.05): {p_val < 0.05}")
         return {"b": b, "c": c, "chi2": float(chi2_stat), "pvalue": float(p_val)}
 
-    mcnemar_base   = run_mcnemar(preds_base,   preds_comb, "TF-IDF Baseline",        "TF-IDF Combiné")
-    mcnemar_char   = run_mcnemar(preds_char,   preds_comb, "Char N-grams",           "TF-IDF Combiné")
-    mcnemar_pm     = run_mcnemar(preds_pm,     preds_comb, "PubMedBERT (frozen)",    "TF-IDF Combiné")
-    mcnemar_pm_ft  = run_mcnemar(preds_pm_ft,  preds_comb, "PubMedBERT (fine-tuned)","TF-IDF Combiné")
-    mcnemar_sci_ft = run_mcnemar(preds_sci_ft, preds_comb, "SciBERT (fine-tuned)",   "TF-IDF Combiné")
+    mcnemar_base   = run_mcnemar(preds_base,   preds_comb, "TF-IDF Baseline",        "Combined TF-IDF")
+    mcnemar_char   = run_mcnemar(preds_char,   preds_comb, "Char N-grams",           "Combined TF-IDF")
+    mcnemar_pm     = run_mcnemar(preds_pm,     preds_comb, "PubMedBERT (frozen)",    "Combined TF-IDF")
+    mcnemar_pm_ft  = run_mcnemar(preds_pm_ft,  preds_comb, "PubMedBERT (fine-tuned)","Combined TF-IDF")
+    mcnemar_sci_ft = run_mcnemar(preds_sci_ft, preds_comb, "SciBERT (fine-tuned)",   "Combined TF-IDF")
 
     # =========================================================================
     # Bootstrapping F1 Difference (2,000 iterations)
@@ -255,31 +255,31 @@ def main():
         return mean_diff, lo, hi
 
     mean_b, lo_b, hi_b = get_ci(diff_base_list)
-    print(f"TF-IDF Combiné vs TF-IDF Baseline dF1:")
+    print(f"Combined TF-IDF vs TF-IDF Baseline dF1:")
     print(f"  Mean Difference: {mean_b*100:+.2f}%")
     print(f"  95% CI: [{lo_b*100:.2f}%, {hi_b*100:.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_b <= 0 <= hi_b)}")
 
     mean_c, lo_c, hi_c = get_ci(diff_char_list)
-    print(f"TF-IDF Combiné vs Char N-grams dF1:")
+    print(f"Combined TF-IDF vs Char N-grams dF1:")
     print(f"  Mean Difference: {mean_c*100:+.2f}%")
     print(f"  95% CI: [{lo_c*100:.2f}%, {hi_c*100:.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_c <= 0 <= hi_c)}")
 
     mean_p, lo_p, hi_p = get_ci(diff_pm_list)
-    print(f"TF-IDF Combiné vs PubMedBERT (frozen) dF1:")
+    print(f"Combined TF-IDF vs PubMedBERT (frozen) dF1:")
     print(f"  Mean Difference: {mean_p*100:+.2f}%")
     print(f"  95% CI: [{lo_p*100:.2f}%, {hi_p*100:.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_p <= 0 <= hi_p)}")
 
     mean_pmft, lo_pmft, hi_pmft = get_ci(diff_pm_ft_list)
-    print(f"TF-IDF Combiné vs PubMedBERT (fine-tuned) dF1:")
+    print(f"Combined TF-IDF vs PubMedBERT (fine-tuned) dF1:")
     print(f"  Mean Difference: {mean_pmft*100:+.2f}%")
     print(f"  95% CI: [{lo_pmft*100:.2f}%, {hi_pmft*100:.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_pmft <= 0 <= hi_pmft)}")
 
     mean_scift, lo_scift, hi_scift = get_ci(diff_sci_ft_list)
-    print(f"TF-IDF Combiné vs SciBERT (fine-tuned) dF1:")
+    print(f"Combined TF-IDF vs SciBERT (fine-tuned) dF1:")
     print(f"  Mean Difference: {mean_scift*100:+.2f}%")
     print(f"  95% CI: [{lo_scift*100:.2f}%, {hi_scift*100:.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_scift <= 0 <= hi_scift)}")
@@ -302,7 +302,7 @@ def main():
         },
         "thresholds_used": {
             "TF-IDF Baseline":   0.37,
-            "TF-IDF Combiné":    float(_frozen_thresh),
+            "Combined TF-IDF":    float(_frozen_thresh),
             "Char N-grams":      float(_char_best_thresh),
             "PubMedBERT (frozen)":    float(_pm_best_thresh),
             "PubMedBERT (fine-tuned)": float(_pm_ft_thresh),

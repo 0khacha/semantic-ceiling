@@ -1,4 +1,4 @@
-# Cancer Paper Mill Detection Dataset (CPM-11K) & Diagnostics Pipeline
+﻿# Cancer Paper Mill Detection Dataset (CPM-11K) & Diagnostics Pipeline
 
 > **Status:** Research artifact accompanying a thesis chapter. Not a maintained production tool.
 
@@ -16,11 +16,11 @@ Text-based detection (titles + abstracts) works extremely well against **content
 
 ### Validation Set (N = 1,440 · 252 pos / 1,188 neg)
 
-All ten trained models evaluated on the held-aside validation partition. Decision threshold selected on validation by sweeping [0.1, 0.9), then frozen. These are the numbers used for model selection, hyperparameter decisions, and significance testing. Source: `docs/THESIS_CHAPTER.md` §4.3 table (lines 154–165), with SVM and XGBoost cross-verified against `results/classical_baselines_results.json`, TF-IDF Combiné cross-verified against `results/tfidf_combined_results.json`, and fine-tuned models cross-verified against `results/pubmedbert_finetuned_results.json` / `results/scibert_finetuned_results.json`.
+All ten trained models evaluated on the held-aside validation partition. Decision threshold selected on validation by sweeping [0.1, 0.9), then frozen. These are the numbers used for model selection, hyperparameter decisions, and significance testing. Source: `docs/THESIS_CHAPTER.md` §4.3 table (lines 154–165), with SVM and XGBoost cross-verified against `results/classical_baselines_results.json`, Combined TF-IDF cross-verified against `results/tfidf_combined_results.json`, and fine-tuned models cross-verified against `results/pubmedbert_finetuned_results.json` / `results/scibert_finetuned_results.json`.
 
 > [!NOTE]
 > **Methodology Note: Historical Reproducibility Issue (Identified and Resolved)**
-> No original training script for the TF-IDF Combiné model survives. During audit, it was discovered that the historical configuration (`class_weight="balanced"`, `min_df=5`, `C=10.0`) was reconstructed via a search that exactly matched test-set and Hindawi-holdout metrics, not validation metrics alone. This constituted leakage of held-out information into the model-selection decision.
+> No original training script for the Combined TF-IDF model survives. During audit, it was discovered that the historical configuration (`class_weight="balanced"`, `min_df=5`, `C=10.0`) was reconstructed via a search that exactly matched test-set and Hindawi-holdout metrics, not validation metrics alone. This constituted leakage of held-out information into the model-selection decision.
 > 
 > **Resolution:** This issue has been fully resolved. The corrective action was adopting `C=15.0`, selected via a newly written, validation-only, git-tracked search script (`scripts/train/exhaustive_search.py`), ensuring its isolation from test/holdout data. All current numbers in this README and the thesis already reflect the corrected `C=15.0` configuration — no further action is needed. The old `C=10.0` tables are archived below with a DO NOT CITE warning for transparency.
 
@@ -34,8 +34,8 @@ All ten trained models evaluated on the held-aside validation partition. Decisio
 | Embeddings (MiniLM-L6-v2, frozen) | 33.33% | 48.81% | 39.61% | 69.28% |
 | Embeddings (PubMedBERT, frozen) | 39.09% | 54.76% | 45.62% | 78.22% |
 | XGBoost (TF-IDF, min_df=5) | 37.04% | 59.52% | 45.66% | 76.08% |
-| SVM Linéaire (TF-IDF, min_df=5) | 47.52% | 60.71% | 53.31% | 80.83% |
-| **TF-IDF Combiné (min_df=5, C=15.0)** | **49.68%** | **60.71%** | **54.64%** | **80.85%** |
+| Linear SVM (TF-IDF, min_df=5) | 47.52% | 60.71% | 53.31% | 80.83% |
+| **Combined TF-IDF (min_df=5, C=15.0)** | **49.68%** | **60.71%** | **54.64%** | **80.85%** |
 | PubMedBERT (fine-tuned, 3 epochs) | 47.26%¹ | 65.08%¹ | 54.76% | 83.72% |
 | SciBERT (fine-tuned, 3 epochs) | 51.70%¹ | 60.32%¹ | 55.68% | 84.47% |
 
@@ -45,7 +45,7 @@ All ten trained models evaluated on the held-aside validation partition. Decisio
 
 > The thesis mandates stratified reporting for this dataset — global metrics alone are misleading.
 
-Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; `classical_baselines_results.json → {svm,xgboost}.stratified.{hindawi,spandidos,others}.{f1,auc}` for SVM and XGBoost; `tfidf_combined_results.json → val.stratified.{hindawi,spandidos,others}.{f1,auc}` for TF-IDF Combiné; `{pubmedbert,scibert}_finetuned_results.json → stratified.{hindawi,spandidos,others}.{f1,auc}` for fine-tuned models.
+Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; `classical_baselines_results.json → {svm,xgboost}.stratified.{hindawi,spandidos,others}.{f1,auc}` for SVM and XGBoost; `tfidf_combined_results.json → val.stratified.{hindawi,spandidos,others}.{f1,auc}` for Combined TF-IDF; `{pubmedbert,scibert}_finetuned_results.json → stratified.{hindawi,spandidos,others}.{f1,auc}` for fine-tuned models.
 
 | Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
 |---|---|---|---|
@@ -54,8 +54,8 @@ Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; 
 | Character N-grams | 21.39% / 61.79% | 78.95% / 94.34% | 62.18% / 93.01% |
 | PubMedBERT (frozen) | 40.15% / 65.71% | 71.11% / 88.79% | 46.74% / 86.91% |
 | XGBoost | 40.15% / 61.83% | 73.91% / 91.41% | 46.29% / 88.85% |
-| SVM Linéaire | 41.83% / 63.54% | 82.93% / 96.87% | 60.00% / 92.52% |
-| **TF-IDF Combiné (C=15.0)** | **42.80% / 62.93%** | **85.00% / 96.87%** | **61.60% / 92.91%** |
+| Linear SVM | 41.83% / 63.54% | 82.93% / 96.87% | 60.00% / 92.52% |
+| **Combined TF-IDF (C=15.0)** | **42.80% / 62.93%** | **85.00% / 96.87%** | **61.60% / 92.91%** |
 | PubMedBERT (fine-tuned) | 47.10% / 65.40% | 76.19% / 94.95% | 60.73% / 93.50% |
 | SciBERT (fine-tuned) | 46.37% / 66.62% | 78.05% / 96.06% | 63.89% / 93.44% |
 
@@ -65,14 +65,14 @@ Source: `THESIS_CHAPTER.md` §4.3 lines 174–182 for rows without a JSON file; 
 
 ### Test Set (N = 1,440 · 252 pos / 1,188 neg · one-time access, threshold frozen at 0.35)
 
-The final test partition was accessed only once, after all model selection was finalized. Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302 for PubMedBERT and SciBERT. The TF-IDF Combiné (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+The final test partition was accessed only once, after all model selection was finalized. Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 #### Global Metrics
 
 | Model | F1 | AUC |
 |---|---|---|
-| TF-IDF Combiné (min_df=5, C=15.0) | 49.45% | 79.60% |
-| TF-IDF Combiné (OLD C=10.0) | 48.67% | 79.59% |
+| Combined TF-IDF (min_df=5, C=15.0) | 49.45% | 79.60% |
+| Combined TF-IDF (OLD C=10.0) | 48.67% | 79.59% |
 | PubMedBERT v2 (fine-tuned) | 49.52% | 81.83% |
 | SciBERT v2 (fine-tuned) | 50.96% | 83.83% |
 
@@ -86,8 +86,8 @@ Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302.
 
 | Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
 |---|---|---|---|
-| TF-IDF Combiné (C=15.0) | 38.98% / 65.78% | 81.25% / 97.16% | 54.61% / 89.21% |
-| TF-IDF Combiné (OLD C=10.0) | 37.66% / 65.71% | 81.25% / 98.06% | 54.11% / 89.44% |
+| Combined TF-IDF (C=15.0) | 38.98% / 65.78% | 81.25% / 97.16% | 54.61% / 89.21% |
+| Combined TF-IDF (OLD C=10.0) | 37.66% / 65.71% | 81.25% / 98.06% | 54.11% / 89.44% |
 | PubMedBERT v2 | 38.17% / 66.06% | 87.50% / 94.57% | 57.27% / 90.09% |
 | SciBERT v2 | 36.52% / 70.42% | 77.42% / 92.89% | 63.11% / 90.75% |
 
@@ -95,13 +95,13 @@ Source: `THESIS_CHAPTER.md` §5.5 table, lines 300–302.
 
 ### Hindawi Holdout Generalization (N = 1,504 · 429 pos / 1,075 neg · fully withheld)
 
-Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS_CHAPTER.md` §5.6 prose, lines 310–313 for PubMedBERT and SciBERT. The TF-IDF Combiné (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS_CHAPTER.md` §5.6 prose, lines 310–313 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
 
 | Model | Precision | Recall | F1 | AUC |
 |---|---|---|---|---|
 | Trivial Baseline (always positive) | — | — | 44.39% | — |
-| TF-IDF Combiné (C=15.0) | 46.18% | 35.20% | 39.95% | 64.18% |
-| TF-IDF Combiné (OLD C=10.0) | 46.41% | 36.13% | 40.63% | 64.47% |
+| Combined TF-IDF (C=15.0) | 46.18% | 35.20% | 39.95% | 64.18% |
+| Combined TF-IDF (OLD C=10.0) | 46.41% | 36.13% | 40.63% | 64.47% |
 | PubMedBERT v2 | 43.42% | 40.79% | 42.07% | 67.48% |
 | SciBERT v2 | 46.98% | 34.50% | 39.78% | 66.77% |
 
@@ -113,27 +113,27 @@ Evaluated once at project end (§5.6), threshold frozen at 0.35. Source: `THESIS
 
 | Global Comparison (Validation) | Stratified Breakdown (Validation) |
 |:---:|:---:|
-| ![Global model comparison](docs/figures/comparaison_globale.png) | ![Stratified comparison](docs/figures/comparaison_stratified.png) |
+| ![Global model comparison](docs/figures/global_comparison.png) | ![Stratified comparison](docs/figures/stratified_comparison.png) |
 
 | Fine-tuned model training curves | Statistical significance forest plot |
 |:---:|:---:|
-| ![Fine-tuned models](docs/figures/modeles_finetunes.png) | ![Forest plot](docs/figures/significativite_forest_plot.png) |
+| ![Fine-tuned models](docs/figures/finetuned_models.png) | ![Forest plot](docs/figures/significance_forest_plot.png) |
 
 ---
 
 ## Statistical Significance
 
-**McNemar's test + 95% bootstrap ΔF1 confidence intervals** comparing each model against **TF-IDF Combiné (min_df=5, C=15.0)** as the reference. Computed on the **global validation set** (N=1,440). Source: `results/significance_results.json`, keys `mcnemar` and `bootstrap_ci`. The sign convention in the JSON is described in thesis §4.3 prose (lines 195–198): for the classical/frozen models, a positive bootstrap mean means TF-IDF Combiné outperforms the compared model; for the fine-tuned models, a positive mean means the fine-tuned model slightly outperforms TF-IDF Combiné.
+**McNemar's test + 95% bootstrap ΔF1 confidence intervals** comparing each model against **Combined TF-IDF (min_df=5, C=15.0)** as the reference. Computed on the **global validation set** (N=1,440). Source: `results/significance_results.json`, keys `mcnemar` and `bootstrap_ci`. The sign convention in the JSON is described in thesis §4.3 prose (lines 195–198): for the classical/frozen models, a positive bootstrap mean means Combined TF-IDF outperforms the compared model; for the fine-tuned models, a positive mean means the fine-tuned model slightly outperforms Combined TF-IDF.
 
 | Compared model | McNemar χ² | p-value | Direction | \|ΔF1\| mean | 95% CI |
 |---|---|---|---|---|---|
-| TF-IDF Baseline (min_df=2, C=1.0) | 76.41 | < 10⁻¹⁶ | Combiné wins | 7.81 pp | [4.66 pp, 11.08 pp] |
+| TF-IDF Baseline (min_df=2, C=1.0) | 76.41 | < 10⁻¹⁶ | Combined wins | 7.81 pp | [4.66 pp, 11.08 pp] |
 | Character N-grams | 0.03 | 0.873 | Tied | - | [4.20 pp, 13.37 pp] |
-| PubMedBERT (frozen embeddings) | 28.56 | 9.10 × 10⁻⁸ | Combiné wins | 11.07 pp | [6.81 pp, 15.74 pp] |
+| PubMedBERT (frozen embeddings) | 28.56 | 9.10 × 10⁻⁸ | Combined wins | 11.07 pp | [6.81 pp, 15.74 pp] |
 | PubMedBERT (fine-tuned) | 1.25 | 0.264 | Tied (Indistinguishable) | 0.10 pp | [−4.42 pp, +3.91 pp] |
 | SciBERT (fine-tuned) | 0.59 | 0.443 | Tied (Indistinguishable) | 0.92 pp | [−5.30 pp, +3.38 pp] |
 
-> **Key finding:** Fine-tuned PubMedBERT and SciBERT are **statistically indistinguishable** from TF-IDF Combiné (McNemar p > 0.2 for both; bootstrap CI centers around zero). The F1 gap has been fully closed; classical text-semantics matches deep neural embeddings perfectly on this task.
+> **Key finding:** Fine-tuned PubMedBERT and SciBERT are **statistically indistinguishable** from Combined TF-IDF (McNemar p > 0.2 for both; bootstrap CI centers around zero). The F1 gap has been fully closed; classical text-semantics matches deep neural embeddings perfectly on this task.
 
 ---
 
@@ -194,8 +194,8 @@ python scripts/data_build/normalize_abstracts.py   # Strip trailing-period forma
 
 ```bash
 python scripts/train/train_classical_baselines.py  # SVM + XGBoost on TF-IDF features
-python scripts/train/finetune_pubmedbert.py        # Fine-tune microsoft/BiomedNLP-BiomedBERT-base
-python scripts/train/finetune_scibert.py           # Fine-tune allenai/scibert_scivocab_uncased
+HF_HUB_OFFLINE=1 python scripts/train/finetune_pubmedbert.py        # Fine-tune microsoft/BiomedNLP-BiomedBERT-base
+HF_HUB_OFFLINE=1 python scripts/train/finetune_scibert.py           # Fine-tune allenai/scibert_scivocab_uncased
 ```
 
 ### Stage 3 — Evaluate (`scripts/eval/`)
@@ -204,8 +204,7 @@ python scripts/train/finetune_scibert.py           # Fine-tune allenai/scibert_s
 > The historical `C=10.0` configuration was inferred by matching results and suffered from test-set leakage. The current `C=15.0` evaluation uses a clean, validation-only configuration fully backed by `exhaustive_search.py`.
 
 ```bash
-python scripts/eval/evaluate_all_models.py         # Full evaluation with publisher-stratified breakdown
-python scripts/eval/significance_testing.py        # McNemar's test + bootstrap CIs vs TF-IDF Combiné
+python scripts/eval/significance_testing.py        # McNemar's test + bootstrap CIs vs Combined TF-IDF
 python scripts/eval/run_holdout_significance.py    # Generalization tests on Hindawi holdout
 python scripts/eval/eval_final_test.py             # Isolated final test-set run (one-time access)
 ```
@@ -213,7 +212,6 @@ python scripts/eval/eval_final_test.py             # Isolated final test-set run
 ### Stage 4 — Figures (`scripts/viz/`)
 
 ```bash
-python scripts/viz/generate_french_figures.py      # EDA & descriptive statistics figures
 python scripts/viz/generate_final_eval_figures.py  # AUC curves, stratified bar charts, forest plot
 ```
 
@@ -299,7 +297,7 @@ cancer-paper-mill/
 │           └── retraction_watch.csv   ← Must be obtained separately (see below)
 ├── docs/
 │   ├── DATASET_CARD.md         ← Full methodology, distributions, limitations
-│   ├── THESIS_CHAPTER.md       ← Complete thesis chapter (French)
+│   ├── THESIS_CHAPTER.md       ← Complete thesis chapter (English)
 │   └── figures/                ← All publication-ready figures (10 files)
 ├── models/                     ← Fine-tuned v2 checkpoints (.pt, Git-ignored)
 ├── results/
@@ -307,8 +305,8 @@ cancer-paper-mill/
 │   ├── classical_baselines_results.json     ← SVM + XGBoost validation metrics
 │   ├── pubmedbert_finetuned_results.json    ← PubMedBERT epoch history + validation metrics
 │   ├── scibert_finetuned_results.json       ← SciBERT epoch history + validation metrics
-│   ├── significance_results.json           ← McNemar + bootstrap CIs vs TF-IDF Combiné
-│   └── tfidf_combined_results.json         ← TF-IDF Combiné val/test/holdout metrics
+│   ├── significance_results.json           ← McNemar + bootstrap CIs vs Combined TF-IDF
+│   └── tfidf_combined_results.json         ← Combined TF-IDF val/test/holdout metrics
 ├── scripts/
 │   ├── audit/                  ← Verification outputs (1 file)
 │   │   └── others_ci_verification.json
@@ -325,8 +323,7 @@ cancer-paper-mill/
 │   │   ├── compute_test_strata_bootstrap_ci.py
 │   │   ├── eval_final_test.py
 │   │   ├── eval_tfidf_combined.py
-│   │   ├── evaluate_all_models.py
-│   │   ├── run_holdout_significance.py
+│   │   │   │   ├── run_holdout_significance.py
 │   │   └── significance_testing.py
 │   ├── train/                  ← Model training scripts (5 scripts)
 │   │   ├── exhaustive_search.py       ← Validation-only C search (C=15.0 selection)

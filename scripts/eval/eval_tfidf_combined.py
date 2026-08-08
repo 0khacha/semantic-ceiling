@@ -1,7 +1,7 @@
-"""
+﻿"""
 eval_tfidf_combined.py
 ----------------------
-Trains TF-IDF Combiné (LogisticRegression, min_df=5, C=15.0, ngram_range=(1,2),
+Trains Combined TF-IDF (LogisticRegression, min_df=5, C=15.0, ngram_range=(1,2),
 sublinear_tf=True) on the canonical v2 training set, then evaluates on the
 validation, test, and Hindawi holdout splits.
 
@@ -143,7 +143,7 @@ def stratified_metrics(records, probs_array, labels_array, threshold,
 # ---------------------------------------------------------------------------
 def main():
     print("=" * 60)
-    print("TF-IDF Combiné (LogReg, min_df=5, C=15.0) — Full Evaluation")
+    print("Combined TF-IDF (LogReg, min_df=5, C=15.0) — Full Evaluation")
     print("=" * 60)
 
     # 1. Load data

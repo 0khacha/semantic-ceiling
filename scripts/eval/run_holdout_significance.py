@@ -1,4 +1,4 @@
-import json
+﻿import json
 import torch
 import torch.nn as nn
 import numpy as np
@@ -60,7 +60,7 @@ def main():
     holdout_labels = np.array([r["label"] for r in holdout])
 
     import joblib as _joblib
-    print("Loading TF-IDF Combiné C=15.0 from models/tfidf_combined.joblib...")
+    print("Loading Combined TF-IDF C=15.0 from models/tfidf_combined.joblib...")
     _model_data = _joblib.load("models/tfidf_combined.joblib")
     vec_comb = _model_data["vectorizer"]
     clf_comb = _model_data["classifier"]
@@ -82,7 +82,7 @@ def main():
         p_val = chi2.sf(chi2_stat, 1)
     else:
         chi2_stat, p_val = 0.0, 1.0
-    print(f"\nMcNemar: PubMedBERT vs TF-IDF Combiné (Holdout)")
+    print(f"\nMcNemar: PubMedBERT vs Combined TF-IDF (Holdout)")
     print(f"  p-value: {p_val:.6f} (Significant: {p_val < 0.05})")
 
     np.random.seed(42)
@@ -101,7 +101,7 @@ def main():
     lo_pm = np.percentile(diff_f1, 2.5)
     hi_pm = np.percentile(diff_f1, 97.5)
     
-    print(f"\nBootstrap dF1 (PubMedBERT - TF-IDF Combiné):")
+    print(f"\nBootstrap dF1 (PubMedBERT - Combined TF-IDF):")
     print(f"  Mean: {mean_pm*100:+.2f}%, 95% CI: [{lo_pm*100:+.2f}%, {hi_pm*100:+.2f}%]")
     print(f"  Distinguishable from 0: {not (lo_pm <= 0 <= hi_pm)}")
 

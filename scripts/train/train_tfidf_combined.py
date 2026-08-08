@@ -1,4 +1,4 @@
-"""
+﻿"""
 train_tfidf_combined.py
 -----------------------
 This is the canonical training script for the TF-IDF Combined model (C=15.0).
@@ -115,7 +115,7 @@ def main():
     res = evaluate_predictions(probs_val, val_labels, threshold_range=np.arange(0.1, 0.9, 0.01))
     
     print("\n" + "="*50)
-    print("TF-IDF COMBINÉ VALIDATION METRICS")
+    print("Combined TF-IDF VALIDATION METRICS")
     print("="*50)
     print(f"Optimal Threshold:  {res['best_threshold']:.2f}")
     print(f"Overall Precision:  {res['precision']:.4%}")

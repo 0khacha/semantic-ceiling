@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import csv
 import sys
@@ -14,19 +14,19 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Paths
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-data_dir = os.path.join(project_root, 'data', 'final')
+data_dir = os.path.join(project_root, 'data', 'processed')
 models_dir = os.path.join(project_root, 'models')
 figures_dir = os.path.join(project_root, 'docs', 'figures')
 os.makedirs(figures_dir, exist_ok=True)
 
 # 1. Verification of data files
 required_files = [
-    os.path.join(data_dir, 'cancer_pm_train.json'),
-    os.path.join(data_dir, 'cancer_pm_val.json'),
-    os.path.join(models_dir, 'classical_baselines_results.json'),
-    os.path.join(models_dir, 'pubmedbert_finetuned_results.json'),
-    os.path.join(models_dir, 'scibert_finetuned_results.json'),
-    os.path.join(models_dir, 'significance_results.json')
+    os.path.join(data_dir, 'cancer_pm_train_normalized.json'),
+    os.path.join(data_dir, 'cancer_pm_val_normalized.json'),
+    os.path.join(project_root, 'results', 'classical_baselines_results.json'),
+    os.path.join(project_root, 'results', 'pubmedbert_finetuned_results.json'),
+    os.path.join(project_root, 'results', 'scibert_finetuned_results.json'),
+    os.path.join(project_root, 'results', 'significance_results.json')
 ]
 
 for f in required_files:
@@ -36,9 +36,9 @@ for f in required_files:
 
 def main():
     # Load dataset split files
-    with open(os.path.join(data_dir, 'cancer_pm_train.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(data_dir, 'cancer_pm_train_normalized.json'), "r", encoding="utf-8") as f:
         train = json.load(f)
-    with open(os.path.join(data_dir, 'cancer_pm_val.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(data_dir, 'cancer_pm_val_normalized.json'), "r", encoding="utf-8") as f:
         val = json.load(f)
 
     train_texts = [r["title"] + " " + r["abstract"] for r in train]
@@ -90,7 +90,7 @@ def main():
     probs_base = clf_base.predict_proba(X_val_base)[:, 1]
     preds_base = (probs_base >= 0.37).astype(int)
 
-    # TF-IDF Combiné — load canonical C=15.0 model (do not re-train at C=10.0)
+    # Combined TF-IDF — load canonical C=15.0 model (do not re-train at C=10.0)
     import joblib as _jl
     _md = _jl.load(os.path.join(models_dir, "tfidf_combined.joblib"))
     vec_comb    = _md["vectorizer"]
@@ -154,7 +154,7 @@ def main():
     preds_pm = (probs_pm >= _pm_best_thresh).astype(int)
 
     # Load SVM and XGBoost results
-    with open(os.path.join(models_dir, 'classical_baselines_results.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, 'results', 'classical_baselines_results.json'), "r", encoding="utf-8") as f:
         classical_results = json.load(f)
         
     svm_overall = classical_results["svm"]["overall"]
@@ -179,11 +179,11 @@ def main():
     models_list = [
         "Trivial Baseline",
         "TF-IDF Baseline",
-        "TF-IDF Combiné",
+        "Combined TF-IDF",
         "Character N-grams",
         "Embeddings MiniLM",
-        "PubMedBERT gelé",
-        "SVM Linéaire",
+        "Frozen PubMedBERT",
+        "Linear SVM",
         "XGBoost"
     ]
 
@@ -214,7 +214,7 @@ def main():
     plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica']
 
     # =========================================================================
-    # FIGURE 1: Comparaison globale F1/ROC-AUC
+    # FIGURE 1: Global Comparison F1/ROC-AUC
     # =========================================================================
     print("\n" + "="*80)
     print("FIGURE 1: SOURCE DATA (LITERAL VALUES USED)")
@@ -230,19 +230,19 @@ def main():
     rects2 = ax.bar(x + width/2, [val * 100 for val in auc_scores], width, label='ROC-AUC (%)', color='#6FA8DC')
 
     ax.set_ylabel('Performance (%)', fontsize=12, labelpad=10)
-    ax.set_title('Comparaison Globale des Performances des Modèles (Validation)', fontsize=14, fontweight='bold', pad=15)
+    ax.set_title('Global Comparison of Model Performances (Validation)', fontsize=14, fontweight='bold', pad=15)
     ax.set_xticks(x)
     ax.set_xticklabels(models_list, rotation=15, ha='right', fontsize=10)
     ax.set_ylim(0, 105)
     ax.legend(fontsize=11, loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
-    plt.savefig(os.path.join(figures_dir, 'comparaison_globale.png'), dpi=300)
+    plt.savefig(os.path.join(figures_dir, 'global_comparison.png'), dpi=300)
     plt.close()
-    print("--> Saved comparaison_globale.png")
+    print("--> Saved global_comparison.png")
 
     # =========================================================================
-    # FIGURE 2: Comparaison stratifiée par éditeur (F1)
+    # FIGURE 2: Stratified Comparison by Publisher (F1)
     # =========================================================================
     def get_stratified_f1(preds, pub_list):
         strat_f1s = {}
@@ -309,24 +309,24 @@ def main():
     ax.bar(x + width, [val * 100 for val in others_f1s], width, label='Pooled Others', color='#8FCE00')
 
     ax.set_ylabel('F1-Score (%)', fontsize=12, labelpad=10)
-    ax.set_title('Comparaison de la Performance F1 par Éditeur (Validation)', fontsize=14, fontweight='bold', pad=15)
+    ax.set_title('F1 Performance Comparison by Publisher (Validation)', fontsize=14, fontweight='bold', pad=15)
     ax.set_xticks(x)
     ax.set_xticklabels(models_list, rotation=15, ha='right', fontsize=10)
     ax.set_ylim(0, 105)
     ax.legend(fontsize=11, loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
-    plt.savefig(os.path.join(figures_dir, 'comparaison_stratified.png'), dpi=300)
+    plt.savefig(os.path.join(figures_dir, 'stratified_comparison.png'), dpi=300)
     plt.close()
-    print("--> Saved comparaison_stratified.png")
+    print("--> Saved stratified_comparison.png")
 
     # =========================================================================
-    # FIGURE 3: Modèles fine-tunés avec mise en garde visuelle
+    # FIGURE 3: Fine-tuned models with visual warning
     # =========================================================================
     # Load fine-tuned results
-    with open(os.path.join(models_dir, 'pubmedbert_finetuned_results.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, 'results', 'pubmedbert_finetuned_results.json'), "r", encoding="utf-8") as f:
         ft_pm_results = json.load(f)
-    with open(os.path.join(models_dir, 'scibert_finetuned_results.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, 'results', 'scibert_finetuned_results.json'), "r", encoding="utf-8") as f:
         ft_sci_results = json.load(f)
 
     ft_models_list = models_list + ["PubMedBERT (fine-tuned)", "SciBERT (fine-tuned)"]
@@ -362,27 +362,27 @@ def main():
     ax.legend([bars1, bars2, bars3], ['Hindawi In-Pool', 'Spandidos', 'Pooled Others'], fontsize=11, loc='upper left')
 
     ax.set_ylabel('F1-Score (%)', fontsize=12, labelpad=10)
-    ax.set_title('Performance F1 des Modèles avec Fine-Tuning Neuronal Profond', fontsize=14, fontweight='bold', pad=20)
+    ax.set_title('F1 Performance of Deep Neural Fine-Tuned Models', fontsize=14, fontweight='bold', pad=20)
     ax.set_xticks(x_ft)
     ax.set_xticklabels(ft_models_list, rotation=15, ha='right', fontsize=10)
     ax.set_ylim(0, 115)
     
     # Add textual annotation for Section 5.8 warning
     ax.text(x_ft[-1] - 1.5, 105, 
-            "Mise en garde (Section 5.8) :\nPerformance parfaite (100% F1) sur Hindawi due à un\nsurapprentissage stylistique local (syntaxe de phrases\ntypes et d'IA), vulnérable aux dérives.", 
+            "Warning (Section 5.8):\nPerfect performance (100% F1) on Hindawi due to\nlocal stylistic overfitting (formatting and AI phrasing),\nvulnerable to drift.", 
             bbox=dict(boxstyle="round,pad=0.5", fc="#FFF2CC", ec="#D5A6BD", lw=1.5),
             fontsize=10, color="black", fontweight="semibold")
 
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
-    plt.savefig(os.path.join(figures_dir, 'modeles_finetunes.png'), dpi=300)
+    plt.savefig(os.path.join(figures_dir, 'finetuned_models.png'), dpi=300)
     plt.close()
-    print("--> Saved modeles_finetunes.png")
+    print("--> Saved finetuned_models.png")
 
     # =========================================================================
-    # FIGURE 4: Forest plot de significativité statistique
+    # FIGURE 4: Statistical significance forest plot
     # =========================================================================
-    with open(os.path.join(models_dir, 'significance_results.json'), "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, 'results', 'significance_results.json'), "r", encoding="utf-8") as f:
         sig_results = json.load(f)
 
     comp_models = ["TF-IDF Baseline", "Char N-grams", "PubMedBERT (frozen)", "PubMedBERT (fine-tuned)", "SciBERT (fine-tuned)"]
@@ -396,7 +396,7 @@ def main():
     print("FIGURE 4: SOURCE DATA (SIGNIFICANCE STATISTICS)")
     print("="*80)
     for name, mean, lo, hi, pval, chi2 in zip(comp_models, means, lowers, uppers, p_values, chi2s):
-        print(f"Comparison: TF-IDF Combiné vs {name:<20} | Mean Diff = {mean:+.2f}% | 95% CI = [{lo:.2f}%, {hi:.2f}%] | McNemar p = {pval:.6f} (chi2={chi2:.2f})")
+        print(f"Comparison: Combined TF-IDF vs {name:<20} | Mean Diff = {mean:+.2f}% | 95% CI = [{lo:.2f}%, {hi:.2f}%] | McNemar p = {pval:.6f} (chi2={chi2:.2f})")
 
     fig, ax = plt.subplots(figsize=(10, 5))
     
@@ -406,15 +406,15 @@ def main():
     errors_high = np.array(uppers) - np.array(means)
     
     ax.errorbar(means, y_pos, xerr=[errors_low, errors_high], fmt='o', color='#1f77b4', 
-                markersize=8, elinewidth=2.5, capsize=8, label="Différence F1 moyenne (95% CI)")
+                markersize=8, elinewidth=2.5, capsize=8, label="Mean F1 Difference (95% CI)")
     
     # Reference vertical line at 0 (meaning no difference)
     ax.axvline(0, color='grey', linestyle='--', lw=1.5)
     
     ax.set_yticks(y_pos)
     ax.set_yticklabels(comp_models, fontsize=11, fontweight="bold")
-    ax.set_xlabel("Différence de score F1 par rapport à TF-IDF Combiné (points %)", fontsize=12, labelpad=10)
-    ax.set_title("Différences de Performance (dF1) et Significativité Statistique", fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel("F1 Score Difference compared to Combined TF-IDF (% points)", fontsize=12, labelpad=10)
+    ax.set_title("Performance Differences (dF1) and Statistical Significance", fontsize=14, fontweight='bold', pad=15)
     ax.set_xlim(-1, 15)
     
     # Add textual annotation for each errorbar detailing McNemar p-value
@@ -425,9 +425,9 @@ def main():
 
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
-    plt.savefig(os.path.join(figures_dir, 'significativite_forest_plot.png'), dpi=300)
+    plt.savefig(os.path.join(figures_dir, 'significance_forest_plot.png'), dpi=300)
     plt.close()
-    print("--> Saved significativite_forest_plot.png")
+    print("--> Saved significance_forest_plot.png")
 
 if __name__ == "__main__":
     main()
