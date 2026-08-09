@@ -1,6 +1,6 @@
-﻿# Independent Audit & Verification Summary
+# Independent Audit & Verification Summary
 
-This document serves as the independent verification and audit trail for the machine learning models and statistical claims presented in the *Cancer Paper Mill (CPM-11K)* study.
+This document serves as the independent verification and audit trail for the machine learning models and statistical claims presented in *The Semantic Ceiling: Assessing the Limits of NLP for Scientific Publication Fraud Detection in Biomedical Publishing* (data: CPM-11K).
 
 ## 1. Verified Artifacts
 

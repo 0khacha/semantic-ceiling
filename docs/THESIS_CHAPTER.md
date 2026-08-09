@@ -1,8 +1,8 @@
-# Chapter: Automatic Detection of Paper Mills in Oncology Literature
+# The Semantic Ceiling: Assessing the Limits of NLP for Scientific Publication Fraud Detection in Biomedical Publishing
 
 ## Abstract
 
-This chapter presents a systematic study on the automatic detection of fraudulent scientific publications originating from paper mills in the field of oncology. To this end, we construct the CPM-11K dataset, gathering 11,106 clinical and translational articles indexed in the Retraction Watch Database (RWDB) and MEDLINE/PubMed, structured in a way to eliminate label leakage and temporal biases. A strict data splitting protocol by disjoint author and title clustering is implemented, resolving a major issue of percolation of frequent surnames. We train and compare several semantic and lexical configurations.
+This chapter presents a systematic investigation into the limits of NLP-based classifiers for detecting scientific publication fraud in biomedical literature, using paper mills in oncology as the applied evidence base. To this end, we construct the CPM-11K dataset, gathering 11,106 clinical and translational articles indexed in the Retraction Watch Database (RWDB) and MEDLINE/PubMed, structured in a way to eliminate label leakage and temporal biases. A strict data splitting protocol by disjoint author and title clustering is implemented, resolving a major issue of percolation of frequent surnames. We train and compare several semantic and lexical configurations.
 
 Our reference model, a robust linear classifier based on weighted bags of words (Combined TF-IDF, $min\_df=5$, $C=15.0$), achieves top-tier global performance with an overall F1 score of 54.64% and a ROC-AUC of 80.85% on the validation set. It should be noted that the exact configuration of the reference model was reconstructed by alignment with published metrics rather than verified from the original scripts, constituting a limitation of this study. However, a stratified evaluation by publisher reveals a major performance asymmetry: while fraudulent articles from Spandidos (characterized by gross image frauds dressed in stereotyped texts) are detected with an F1 of 85.00%, the model fails against a naive positive prediction on the Hindawi editorial subset. A qualitative causal analysis of retraction reasons and a dose-response test by bootstrap resampling suggest that frauds based on the manipulation of editorial processes (compromised peer review, citation rings) do not leave a lexical signal easily extractable by the representations tested in the abstracts. These results are consistent with a final evaluation on an independent test set (ROC-AUC of 65.71% on Hindawi) and an isolated Hindawi-Holdout generalization set of 1,504 articles (F1 of 39.95% vs 44.39% for the trivial baseline, ROC-AUC of 64.18%). This work highlights the limitations of semantic textual analysis (at the abstract level) for the detection of process fraud, and paves the way for multi-modal approaches integrating publication metadata.
 
@@ -12,7 +12,7 @@ Our reference model, a robust linear classifier based on weighted bags of words 
 
 The proliferation of paper mills represents one of the most critical challenges to the integrity of contemporary scientific communication. These commercial organizations produce fraudulent manuscripts at scale, often based on semantic templates and falsified imaging data, to sell them to researchers under publication pressure. The field of clinical and translational oncology is particularly affected by this scourge due to the high demand for publications in this discipline.
 
-The objective of this work is to design and evaluate machine learning models capable of automatically detecting these fraudulent publications from their abstracts. This chapter details the construction of the CPM-11K reference dataset, the strict data splitting protocol designed to prevent information leakage, the exploratory analysis of the abstracts, lexical and semantic modeling, and finally, an in-depth causal analysis of the limitations encountered on the Hindawi editorial subset.
+The objective of this work is to assess the capacity and limits of text-based machine learning models for detecting fraudulent publications from their abstracts, and to characterize the conditions under which semantic representations fail to capture fraud signal. This chapter details the construction of the CPM-11K reference dataset, the strict data splitting protocol designed to prevent information leakage, the exploratory analysis of the abstracts, lexical and semantic modeling, and finally, an in-depth causal analysis of the limitations encountered on the Hindawi editorial subset.
 
 ---
 
@@ -249,12 +249,12 @@ We calculated the 95% confidence intervals by bootstrap resampling (2,000 iterat
 #### Results of AUC bootstrap confidence intervals
 
 *   **Combined TF-IDF Model:**
-    *   *Subgroup A (AI, N=82):* $\text{AUC} = 63.39\%$ | $\text{95% CI} = [57.02\%, 70.05\%]$
-    *   *Subgroup B (Other, N=52):* $\text{AUC} = 63.07\%$ | $\text{95% CI} = [55.96\%, 70.39\%]$
+    *   *Subgroup A (AI, N=82):* $\text{AUC} = 63.39\%$ | $\text{95\% CI} = [57.02\%, 70.05\%]$
+    *   *Subgroup B (Other, N=52):* $\text{AUC} = 63.07\%$ | $\text{95\% CI} = [55.96\%, 70.39\%]$
     *   *CI Overlap:* **YES** (shared range $[57.02\%, 70.05\%]$, overlap width = 13.03 pp)
 *   **PubMedBERT Model:**
-    *   *Subgroup A (AI, N=82):* $\text{AUC} = 59.92\%$ | $\text{95% CI} = [53.33\%, 66.49\%]$
-    *   *Subgroup B (Other, N=52):* $\text{AUC} = 59.78\%$ | $\text{95% CI} = [52.01\%, 67.59\%]$
+    *   *Subgroup A (AI, N=82):* $\text{AUC} = 59.92\%$ | $\text{95\% CI} = [53.33\%, 66.49\%]$
+    *   *Subgroup B (Other, N=52):* $\text{AUC} = 59.78\%$ | $\text{95\% CI} = [52.01\%, 67.59\%]$
     *   *CI Overlap:* **YES** (shared range $[53.33\%, 66.49\%]$, overlap width = 13.15 pp)
 
 **Conclusion of the causal analysis:** The confidence intervals of the two subgroups overlap almost completely. This lack of statistical difference does not support the hypothesis that computer rephrasing is the main cause of the blockage.

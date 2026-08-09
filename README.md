@@ -1,8 +1,10 @@
-# Cancer Paper Mill Detection Dataset (CPM-11K) & Diagnostics Pipeline
+# The Semantic Ceiling: Assessing the Limits of NLP for Scientific Publication Fraud Detection in Biomedical Publishing
+
+**Research code & dataset (CPM-11K) accompanying the thesis chapter of the same name.**
 
 > **Status:** Research artifact accompanying a thesis chapter. Not a maintained production tool.
 
-This repository contains the data, scripts, and fully reproducible pipeline for detecting **process fraud** in academic publishing — specifically peer-review rings and paper mills — with a primary focus on Hindawi journal retractions. The project constructs the **CPM-11K** dataset and benchmarks a family of classical and transformer-based classifiers against it using rigorous, publisher-stratified evaluation.
+This repository contains the data, scripts, and fully reproducible pipeline accompanying the thesis argument that **NLP-based classifiers face a fundamental semantic ceiling when applied to process-level publication fraud in biomedical literature**. Using the **CPM-11K** dataset — constructed from Hindawi and Spandidos retractions in oncology — the study benchmarks a family of classical and transformer-based classifiers and demonstrates that text-based models can detect *content fraud* (e.g., Spandidos) but systematically fail on *process fraud* (e.g., Hindawi peer-review manipulation), regardless of model sophistication.
 
 ---
 
