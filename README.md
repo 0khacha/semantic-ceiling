@@ -155,8 +155,8 @@ The pre-normalization "leaky" v1 assets are preserved in `archive/` for full rep
 ## Quickstart
 
 ```bash
-git clone https://github.com/0khacha/cancer-paper-mill.git
-cd cancer-paper-mill
+git clone https://github.com/0khacha/semantic-ceiling.git
+cd semantic-ceiling
 pip install -r requirements.txt
 
 # Run the full evaluation suite against all pre-trained models
@@ -285,7 +285,7 @@ For full dataset methodology, purge rates, funding index artifacts, and known li
 ## Repository Structure
 
 ```
-cancer-paper-mill/
+semantic-ceiling/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
