@@ -130,7 +130,7 @@ Evaluated once at project end during original model development (§5.6), thresho
 | Compared model | McNemar χ² | p-value | Direction | \|ΔF1\| mean | 95% CI |
 |---|---|---|---|---|---|
 | TF-IDF Baseline (min_df=2, C=1.0) | 76.41 | < 10⁻¹⁶ | Combined wins | 7.81 pp | [4.66 pp, 11.08 pp] |
-| Character N-grams | 0.03 | 0.873 | Tied | - | [4.20 pp, 13.37 pp] |
+| Character N-grams | 1.59 | 0.207 | Tied | - | [4.20 pp, 13.37 pp] |
 | PubMedBERT (frozen embeddings) | 28.56 | 9.10 × 10⁻⁸ | Combined wins | 11.07 pp | [6.81 pp, 15.74 pp] |
 | PubMedBERT (fine-tuned) | 1.25 | 0.264 | Tied (Indistinguishable) | 0.10 pp | [−4.42 pp, +3.91 pp] |
 | SciBERT (fine-tuned) | 0.59 | 0.443 | Tied (Indistinguishable) | 0.92 pp | [−5.30 pp, +3.38 pp] |
@@ -160,7 +160,7 @@ cd semantic-ceiling
 pip install -r requirements.txt
 
 # Run the full evaluation suite against all pre-trained models
-python scripts/eval/evaluate_all_models.py
+python scripts/eval/eval_final_test.py
 ```
 
 **Dependencies** (exact strings from `requirements.txt`):
@@ -325,7 +325,7 @@ semantic-ceiling/
 │   │   ├── compute_test_strata_bootstrap_ci.py
 │   │   ├── eval_final_test.py
 │   │   ├── eval_tfidf_combined.py
-│   │   │   │   ├── run_holdout_significance.py
+│   │   ├── run_holdout_significance.py
 │   │   └── significance_testing.py
 │   ├── train/                  ← Model training scripts (5 scripts)
 │   │   ├── exhaustive_search.py       ← Validation-only C search (C=15.0 selection)
@@ -334,8 +334,8 @@ semantic-ceiling/
 │   │   ├── train_classical_baselines.py
 │   │   └── train_tfidf_combined.py
 │   └── viz/                    ← Figure generation (2 scripts)
-│       ├── generate_final_eval_figures.py
-│       └── generate_french_figures.py
+│       ├── generate_eda_figures.py
+│       └── generate_final_eval_figures.py
 └── archive/                    ← Preserved v1 (leaky) artifacts for §5.8 audit
     ├── diagnostics/             ← 17 diagnostic scripts
     ├── leaky_data_v1/           ← Git-ignored
