@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import csv
 import sys
@@ -365,13 +365,7 @@ def main():
     ax.set_title('F1 Performance of Deep Neural Fine-Tuned Models', fontsize=14, fontweight='bold', pad=20)
     ax.set_xticks(x_ft)
     ax.set_xticklabels(ft_models_list, rotation=15, ha='right', fontsize=10)
-    ax.set_ylim(0, 115)
-    
-    # Add textual annotation for Section 5.8 warning
-    ax.text(x_ft[-1] - 1.5, 105, 
-            "Warning (Section 5.8):\nPerfect performance (100% F1) on Hindawi due to\nlocal stylistic overfitting (formatting and AI phrasing),\nvulnerable to drift.", 
-            bbox=dict(boxstyle="round,pad=0.5", fc="#FFF2CC", ec="#D5A6BD", lw=1.5),
-            fontsize=10, color="black", fontweight="semibold")
+    ax.set_ylim(0, 105)
 
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()

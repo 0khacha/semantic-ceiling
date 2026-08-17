@@ -219,10 +219,13 @@ While the model achieves excellent results on Spandidos (F1 of 85.00% and AUC of
 
 Analysis of the predicted probabilities distribution shows an almost total overlap between the two classes for Hindawi:
 
-*   **Hindawi Positives (134):** Mean probability = 0.2996 | Median = 0.2448 | Std Dev = 0.2241 (Q25 = 0.1026, Q75 = 0.4743).
-*   **Hindawi Negatives (356):** Mean probability = 0.2137 | Median = 0.1234 | Std Dev = 0.2186 (Q25 = 0.0480, Q75 = 0.3096).
+*   **Hindawi Positives (134):** Mean probability = 0.2846 | Median = 0.2327 | Std Dev = 0.2316 (Q25 = 0.0847, Q75 = 0.4486).
+*   **Hindawi Negatives (356):** Mean probability = 0.2005 | Median = 0.1037 | Std Dev = 0.2222 (Q25 = 0.0358, Q75 = 0.2855).
 
-A quarter (25%) of the confirmed Hindawi paper mill articles are assigned fraud probabilities below 0.10. For comparison, for Spandidos and the other publishers, the medians of positive probabilities lie at 0.78 compared to less than 0.07 for negatives. The model has almost no textual discrimination capacity on the Hindawi subset (AUC of 63.27%).
+*(Correction Note — Audit OI-1 follow-up, 2026-08-17: The previous values (pos mean = 0.2996, median = 0.2448; neg mean = 0.2137, median = 0.1234) corresponded to the pre-audit model C = 10.0 / t = 0.36. The values above are recomputed from the canonical model `models/tfidf_combined.joblib` (C = 15.0 / t = 0.35). The AUC and qualitative interpretation are unchanged.)*
+
+A quarter (25%) of the confirmed Hindawi paper mill articles are assigned fraud probabilities below 0.10. For comparison, for Spandidos and the other publishers, the medians of positive probabilities lie at 0.80 compared to less than 0.04 for negatives. The model has almost no textual discrimination capacity on the Hindawi subset (AUC of 62.93%).
+
 
 ### 5.2. Qualitative analysis of retraction causes
 To understand this phenomenon, we extracted the official retraction reasons from the Retraction Watch database for all positive cases in the training and validation corpus. The results indicate a fundamental difference in the very nature of the fraud committed depending on the publishers.
