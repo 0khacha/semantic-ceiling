@@ -118,7 +118,7 @@ def forest_plot():
 
     fig, ax = plt.subplots(figsize=(11, 5.5))
     ax.errorbar(means, y, xerr=[means - lo, hi - means], fmt="o", color="#1f77b4",
-                markersize=8, elinewidth=2.5, capsize=8, label="Mean dF1 with 95% bootstrap CI")
+                markersize=8, elinewidth=2.5, capsize=8)
     ax.axvline(0, color="grey", linestyle="--", lw=1.5)
     for yi, m, h in zip(y, names, hi):
         t = sig["mcnemar"][m]
@@ -132,7 +132,6 @@ def forest_plot():
                   "(> 0 favours Combined TF-IDF)", fontsize=11)
     ax.set_title("Paired Comparison against Combined TF-IDF (Validation)", fontsize=14,
                  fontweight="bold", pad=15)
-    ax.legend(loc="upper right", fontsize=10)
     save(fig, "significance_forest_plot.png")
 
 

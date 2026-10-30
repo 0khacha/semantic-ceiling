@@ -7,7 +7,7 @@ Outputs (docs/figures/):
     eda_purge_cascade.png         fate of the initial candidate pool
     eda_split_volumes.png         train / validation / test / holdout sizes
     eda_class_imbalance.png       global class ratio
-    eda_abstract_lengths.png      abstract length (words) by class
+    eda_abstract_lengths.png      abstract length (words) by class, training split (thesis §3.1)
 """
 import sys
 from collections import Counter
@@ -132,13 +132,13 @@ def class_imbalance(dataset):
     save(fig, "eda_class_imbalance.png")
 
 
-def abstract_lengths(dataset):
+def abstract_lengths(train):
     fig, ax = plt.subplots(figsize=(10, 6))
     for lab, color, label in ((1, POS_COLOR, POS_LABEL), (0, NEG_COLOR, NEG_LABEL)):
-        words = [len(r["abstract"].split()) for r in dataset if r["label"] == lab]
+        words = [len(r["abstract"].split()) for r in train if r["label"] == lab]
         ax.hist(words, bins=50, alpha=0.6, density=True, color=color,
                 label=f"{label} (median {np.median(words):.0f} words)")
-    ax.set_title("Abstract Length Distribution (CPM-11K)", fontsize=14, fontweight="bold", pad=15)
+    ax.set_title("Abstract Length Distribution (training split)", fontsize=14, fontweight="bold", pad=15)
     ax.set_xlabel("Words per abstract", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
     ax.legend(fontsize=11)
@@ -154,7 +154,7 @@ def main():
     purge_cascade()
     split_volumes(splits)
     class_imbalance(dataset)
-    abstract_lengths(dataset)
+    abstract_lengths(splits[0])
 
 
 if __name__ == "__main__":

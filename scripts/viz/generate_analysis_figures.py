@@ -53,11 +53,11 @@ def probability_distribution(res):
             ax.hist(p, bins=25, range=(0, 1), alpha=0.6, density=True, color=color,
                     label=f"{name} (N={len(p)})")
         ax.axvline(t, color="black", linestyle="--", label=f"Threshold t={t:.2f}")
-        ax.text(0.02, 0.96,
+        ax.text(0.98, 0.74,
                 f"Pos: mean={st['positives']['mean']:.3f}, median={st['positives']['median']:.3f}\n"
                 f"Neg: mean={st['negatives']['mean']:.3f}, median={st['negatives']['median']:.3f}\n"
                 f"AUC={100 * res['stratum_ci'][s]['auc']:.1f}%",
-                transform=ax.transAxes, fontsize=10, va="top", bbox=BOX)
+                transform=ax.transAxes, fontsize=10, va="top", ha="right", bbox=BOX)
         ax.set_title(f"{title} - predicted fraud probability", fontsize=13, fontweight="bold")
         ax.set_xlabel("Predicted probability", fontsize=11)
         ax.set_ylabel("Density", fontsize=11)

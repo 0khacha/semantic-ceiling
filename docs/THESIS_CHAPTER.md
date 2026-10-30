@@ -84,7 +84,7 @@ The distributions of abstract lengths are homogeneous between classes (medians o
 | | Min / Max | 50 / 4983 | 6 / 789 |
 
 ![Abstract length distribution](figures/eda_abstract_lengths.png)
-*Figure 6: Comparative histograms of abstract length distributions (words and characters) for positive (paper mills) and negative (legitimate literature) classes.*
+*Figure 6: Histograms of abstract length (words) in the training partition for positive (paper mills) and negative (legitimate literature) classes.*
 
 ### 3.2. Lexical and publisher biases
 *   **Textual leakage:** Terms like `retract` or `withdraw` represent less than 0.35% of occurrences. Publisher names (`hindawi`, `spandidos`) are absent from the abstracts, ensuring the cleaning of boilerplate text.
