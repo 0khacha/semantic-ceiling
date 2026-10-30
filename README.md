@@ -142,8 +142,8 @@ Full methodology, purge rates, per-split publisher and year tables, and known li
 ## Reproducing the results
 
 ```bash
-git clone https://github.com/0khacha/cancer-paper-mill.git
-cd cancer-paper-mill
+git clone https://github.com/0khacha/semantic-ceiling.git
+cd semantic-ceiling
 pip install -r requirements.txt
 ```
 
