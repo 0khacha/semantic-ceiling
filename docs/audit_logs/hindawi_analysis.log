@@ -1,0 +1,13 @@
+hindawi    F1=0.4280 [0.3498 0.5018] AUC=0.6293 [0.5794 0.6836]
+spandidos  F1=0.8500 [0.7097 0.9545] AUC=0.9687 [0.9263 0.9963]
+others     F1=0.6160 [0.5434 0.6795] AUC=0.9291 [0.8955 0.9583]
+combined_tfidf     A_computer_generated   N=82  AUC=0.6289 [0.5621 0.6923]
+combined_tfidf     B_other_process_fraud  N=52  AUC=0.6298 [0.5556 0.7062]
+pubmedbert_frozen  A_computer_generated   N=82  AUC=0.5941 [0.527  0.6604]
+pubmedbert_frozen  B_other_process_fraud  N=52  AUC=0.5814 [0.4999 0.6597]
+pubmedbert_finetuned A_computer_generated   N=82  AUC=0.6722 [0.6039 0.7328]
+pubmedbert_finetuned B_other_process_fraud  N=52  AUC=0.6254 [0.5487 0.7057]
+scibert_finetuned  A_computer_generated   N=82  AUC=0.6674 [0.6031 0.7283]
+scibert_finetuned  B_other_process_fraud  N=52  AUC=0.6644 [0.5857 0.7431]
+Permutation: F1 mean=0.1939 sd=0.0219 z=16.1; AUC mean=0.5038 z=14.2
+Saved results\hindawi_analysis_results.json

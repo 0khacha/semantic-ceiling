@@ -115,9 +115,9 @@ def fetch_crossref_abstract(doi):
 
 def main():
     print("Loading clean positives and negatives...")
-    with open(os.path.join(project_root, 'data', 'clean_positives.json'), 'r', encoding='utf-8') as f:
+    with open(os.path.join(project_root, 'data', 'interim', 'clean_positives.json'), 'r', encoding='utf-8') as f:
         positives = json.load(f)
-    with open(os.path.join(project_root, 'data', 'clean_negatives.json'), 'r', encoding='utf-8') as f:
+    with open(os.path.join(project_root, 'data', 'interim', 'clean_negatives.json'), 'r', encoding='utf-8') as f:
         negatives = json.load(f)
         
     print(f"Clean positives: {len(positives)}")
@@ -292,7 +292,7 @@ def main():
     final_neg = [r for r in final_dataset if r['label'] == 0]
     
     # Save datasets
-    with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_dataset.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_dataset.json'), 'w', encoding='utf-8') as f:
         json.dump(final_dataset, f, indent=2)
         
     print("\n" + "="*70)

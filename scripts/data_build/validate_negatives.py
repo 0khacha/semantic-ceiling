@@ -22,10 +22,10 @@ from collections import Counter
 sys.stdout.reconfigure(encoding='utf-8')
 csv.field_size_limit(sys.maxsize)
 
-with open(os.path.join(project_root, 'data', 'clean_positives.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'clean_positives.json'), 'r', encoding='utf-8') as f:
     positives = json.load(f)
 
-with open(os.path.join(project_root, 'data', 'clean_negatives.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'clean_negatives.json'), 'r', encoding='utf-8') as f:
     negatives = json.load(f)
 
 print(f"Total Clean Positives: {len(positives)}")
@@ -155,7 +155,7 @@ with open(os.path.join(project_root, 'data', 'raw', 'rwdb', 'retraction_watch.cs
                 p = "Hindawi"
             journal_to_publisher[j] = p
 
-with open(os.path.join(project_root, 'data', 'final', 'journal_to_nlm.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'processed', 'journal_to_nlm.json'), 'r', encoding='utf-8') as f:
     j2nlm = json.load(f)
 nlm2raw = {v: k for k, v in j2nlm.items()}
 

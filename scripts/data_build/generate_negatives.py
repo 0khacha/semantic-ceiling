@@ -50,7 +50,7 @@ print("="*70)
 print("PHASE 1: Loading Clean Positive Class")
 print("="*70)
 
-with open(os.path.join(project_root, 'data', 'clean_positives.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'clean_positives.json'), 'r', encoding='utf-8') as f:
     clean_positives = json.load(f)
 
 pos_dois = set(p.get('OriginalPaperDOI', '').strip().lower() for p in clean_positives if p.get('OriginalPaperDOI'))
@@ -79,7 +79,7 @@ print("PHASE 2: Target Group Mapping & NLM Resolution")
 print("="*70)
 
 # Load cached NLM mappings
-cache_path = os.path.join(project_root, 'data', 'final', 'journal_to_nlm.json')
+cache_path = os.path.join(project_root, 'data', 'processed', 'journal_to_nlm.json')
 with open(cache_path, 'r', encoding='utf-8') as f:
     journal_to_nlm = json.load(f)
 
@@ -249,7 +249,7 @@ for i, tg in enumerate(target_list):
     print(f"  Successfully matched {len(sampled)} negatives.")
 
 # Save final clean dataset
-with open(os.path.join(project_root, 'data', 'clean_negatives.json'), 'w', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'clean_negatives.json'), 'w', encoding='utf-8') as f:
     json.dump(negatives_db, f, indent=2)
 
 print("\n" + "="*70)

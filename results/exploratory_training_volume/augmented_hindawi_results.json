@@ -1,0 +1,32 @@
+{
+  "experiment": "Exploratory Hindawi training-volume check (train + holdout)",
+  "note": "EXPLORATORY - not part of the main protocol; the holdout is used for training.",
+  "hyperparameters": {
+    "C": 15.0,
+    "class_weight": "balanced",
+    "vectorizer": "TfidfVectorizer(ngram_range=(1,2), min_df=5, sublinear_tf=True)",
+    "optimal_val_threshold": 0.52
+  },
+  "val_hindawi": {
+    "threshold": 0.52,
+    "precision": 0.5,
+    "recall": 0.3880597014925373,
+    "f1": 0.4369747899159664,
+    "n_pos": 134,
+    "n_neg": 356,
+    "auc": 0.6983900721113534,
+    "pr_auc": 0.4414403937140695,
+    "trivial_baseline_f1": 0.4294871794871795
+  },
+  "test_hindawi": {
+    "threshold": 0.52,
+    "precision": 0.5670103092783505,
+    "recall": 0.41044776119402987,
+    "f1": 0.47619047619047616,
+    "n_pos": 134,
+    "n_neg": 357,
+    "auc": 0.714703791964547,
+    "pr_auc": 0.4890515622208581,
+    "trivial_baseline_f1": 0.42879999999999996
+  }
+}

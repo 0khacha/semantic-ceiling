@@ -1,0 +1,9 @@
+--- pubmedbert: scoring test and holdout with pubmedbert_epoch_3.pt
+  [val_optimal t=0.28] test F1=0.4852 AUC=0.8183 | holdout F1=0.4389 AUC=0.6748
+  [common      t=0.35] test F1=0.4924 AUC=0.8183 | holdout F1=0.4276 AUC=0.6748
+  holdout vs Combined TF-IDF: McNemar p=0.0175, dF1=+3.94 pp [-0.36, +8.09]
+--- scibert: scoring test and holdout with scibert_epoch_3.pt
+  [val_optimal t=0.23] test F1=0.5235 AUC=0.8383 | holdout F1=0.4452 AUC=0.6677
+  [common      t=0.35] test F1=0.5085 AUC=0.8383 | holdout F1=0.3984 AUC=0.6677
+  holdout vs Combined TF-IDF: McNemar p=0.2253, dF1=+4.55 pp [+0.00, +8.93]
+Saved results\finetuned_test_results.json

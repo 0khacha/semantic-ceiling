@@ -41,3 +41,10 @@ archive/leaky_models_v1/
 
 # Local French thesis copy
 THESIS_CHAPTER_fr.md
+
+# Cached frozen sentence embeddings
+models/embeddings/
+models/predictions/
+
+# Intermediate dataset-build outputs
+data/interim/

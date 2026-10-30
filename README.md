@@ -1,376 +1,225 @@
 # The Semantic Ceiling: Assessing the Limits of NLP for Scientific Publication Fraud Detection in Biomedical Publishing
 
-**Research code & dataset (CPM-11K) accompanying the thesis chapter of the same name.**
+Research code, results and dataset documentation (**CPM-11K**) accompanying the thesis chapter of the same name ([`docs/THESIS_CHAPTER.md`](docs/THESIS_CHAPTER.md)).
 
-> **Status:** Research artifact accompanying a thesis chapter. Not a maintained production tool.
+> **Status:** research artifact. Not a maintained production tool.
 
-This repository contains the data, scripts, and fully reproducible pipeline accompanying the thesis argument that **NLP-based classifiers face a fundamental semantic ceiling when applied to process-level publication fraud in biomedical literature**. Using the **CPM-11K** dataset — constructed from Hindawi and Spandidos retractions in oncology — the study benchmarks a family of classical and transformer-based classifiers and demonstrates that text-based models can detect *content fraud* (e.g., Spandidos) but systematically fail on *process fraud* (e.g., Hindawi peer-review manipulation), regardless of model sophistication.
+## Core finding
 
----
+Text-only classifiers (title + abstract) detect paper-mill articles well when the fraud lives in the **content** (Spandidos: stereotyped texts wrapped around duplicated images, validation F1 = 85%, AUC = 97%), but stay close to chance when the fraud lives in the **editorial process** (Hindawi: compromised peer review, AUC 63–67% for every model). Fine-tuning domain transformers (PubMedBERT, SciBERT) does not move this ceiling: they are statistically indistinguishable from a tuned TF-IDF logistic regression on validation F1, and none of the models beats a trivial "always positive" classifier on the withheld Hindawi holdout by a meaningful margin. Detecting process fraud is likely to need signals outside the text, such as publication metadata, co-authorship and reviewer networks.
 
-## Core Finding
-
-Text-based detection (titles + abstracts) works extremely well against **content-fraud** publishers like Spandidos, but **fails systematically on process-fraud publishers like Hindawi**. Even after full fine-tuning of domain-specific transformers (PubMedBERT, SciBERT), models achieve clinically useless Hindawi F1 scores (~37–47%), exposing a fundamental ceiling of text-semantics alone. The evidence points firmly toward the necessity of **multi-modal metadata analysis** (co-authorship graphs, citation patterns, reviewer overlap networks) for process-fraud detection.
+Every number below is read from a JSON file in [`results/`](results/) that is written by a script in [`scripts/`](scripts/). [`AUDIT.md`](AUDIT.md) lists which script produces which number and records the corrections made during the audit.
 
 ---
 
-## Model Results
+## Results
 
-### Validation Set (N = 1,440 · 252 pos / 1,188 neg)
+### Validation set (N = 1,440 · 252 positives / 1,188 negatives)
 
-All ten trained models evaluated on the held-aside validation partition. Decision threshold selected on validation by sweeping [0.1, 0.9), then frozen. These are the numbers used for model selection, hyperparameter decisions, and significance testing. Source: `docs/THESIS_CHAPTER.md` §4.3 table (lines 143–154), with SVM and XGBoost cross-verified against `results/classical_baselines_results.json`, Combined TF-IDF cross-verified against `results/tfidf_combined_results.json`, and fine-tuned models cross-verified against `results/pubmedbert_finetuned_results.json` / `results/scibert_finetuned_results.json`.
+Model selection, thresholds and significance tests use this split only. Each model's decision threshold is its F1-optimal value on validation, searched over [0.10, 0.89].
 
-> [!NOTE]
-> **Methodology Note: Historical Reproducibility Issue (Identified and Resolved)**
-> No original training script for the Combined TF-IDF model survives. During audit, it was discovered that the historical configuration (`class_weight="balanced"`, `min_df=5`, `C=10.0`) was reconstructed via a search that exactly matched test-set and Hindawi-holdout metrics, not validation metrics alone. This constituted leakage of held-out information into the model-selection decision.
-> 
-> **Resolution:** This issue has been fully resolved. The corrective action was adopting `C=15.0`, selected via a newly written, validation-only, git-tracked search script (`scripts/train/exhaustive_search.py`), ensuring its isolation from test/holdout data. All current numbers in this README and the thesis already reflect the corrected `C=15.0` configuration — no further action is needed. The old `C=10.0` tables are archived below with a DO NOT CITE warning for transparency.
+| Model | Threshold | Precision | Recall | F1 | ROC-AUC |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Trivial baseline (always positive) | — | 17.50% | 100.00% | 29.79% | 50.00% |
+| TF-IDF baseline (min_df=2, C=1.0) | 0.37 | 36.30% | 66.27% | 46.91% | 77.86% |
+| Character n-grams (char_wb 3–5) | 0.55 | 46.25% | 46.43% | 46.34% | 77.49% |
+| MiniLM-L6-v2 embeddings (frozen) + LR | 0.55 | 33.70% | 48.41% | 39.74% | 68.83% |
+| S-PubMedBert embeddings (frozen) + LR | 0.54 | 36.46% | 57.14% | 44.51% | 74.71% |
+| XGBoost (TF-IDF, min_df=5) | 0.33 | 37.04% | 59.52% | 45.66% | 76.08% |
+| Linear SVM (TF-IDF, min_df=5) | −0.20¹ | 47.52% | 60.71% | 53.31% | 80.83% |
+| **Combined TF-IDF (min_df=5, C=15.0)** | **0.35** | **49.68%** | **60.71%** | **54.64%** | **80.85%** |
+| PubMedBERT (fine-tuned, 3 epochs) | 0.28 | 47.26% | 65.08% | 54.76% | 83.72% |
+| SciBERT (fine-tuned, 3 epochs) | 0.23 | 51.70% | 60.32% | 55.68% | 84.47% |
 
-#### Global Metrics
+¹ Threshold on the SVM decision function.
 
-| Model | Precision | Recall | F1 | AUC |
-|---|---|---|---|---|
-| Trivial Baseline (always positive) | 17.50% | 100.00% | 29.79% | 50.00% |
-| TF-IDF Baseline (min_df=2, C=1.0) | 36.30% | 66.27% | 46.91% | 77.86% |
-| Character N-grams (char_wb 3–5) | 51.66% | 43.25% | 47.08% | 78.21% |
-| Embeddings (MiniLM-L6-v2, frozen) | 33.33% | 48.81% | 39.61% | 69.28% |
-| Embeddings (PubMedBERT, frozen) | 39.09% | 54.76% | 45.62% | 78.22% |
-| XGBoost (TF-IDF, min_df=5) | 37.04% | 59.52% | 45.66% | 76.08% |
-| Linear SVM (TF-IDF, min_df=5) | 47.52% | 60.71% | 53.31% | 80.83% |
-| **Combined TF-IDF (min_df=5, C=15.0)** | **49.68%** | **60.71%** | **54.64%** | **80.85%** |
-| PubMedBERT (fine-tuned, 3 epochs) | 47.26%¹ | 65.08%¹ | 54.76% | 83.72% |
-| SciBERT (fine-tuned, 3 epochs) | 51.70%¹ | 60.32%¹ | 55.68% | 84.47% |
+#### Publisher-stratified (F1 / ROC-AUC)
 
-> ¹ **Precision and recall for the fine-tuned models:** The thesis text (§4.3, lines 152–153) reports P=48.02%/R=63.89% for PubMedBERT and P=52.61%/R=59.13% for SciBERT. The values in this table come directly from `pubmedbert_finetuned_results.json → overall.{precision,recall}` and `scibert_finetuned_results.json → overall.{precision,recall}`. The discrepancy is due to the thesis reporting P/R at each model's own optimal threshold (0.28 for PubMedBERT, 0.23 for SciBERT), while the JSON records metrics at the model's own best threshold. F1 and AUC are consistent across both sources.
+Global metrics hide the main result, so stratified reporting is mandatory for this dataset. Validation strata: Hindawi 134/356, Spandidos 22/45, Others 96/787 (positives/negatives).
 
-#### Publisher-Stratified Metrics
-
-> The thesis mandates stratified reporting for this dataset — global metrics alone are misleading.
-
-Source: `THESIS_CHAPTER.md` §4.3 lines 161–171 for rows without a JSON file; `classical_baselines_results.json → {svm,xgboost}.stratified.{hindawi,spandidos,others}.{f1,auc}` for SVM and XGBoost; `tfidf_combined_results.json → val.stratified.{hindawi,spandidos,others}.{f1,auc}` for Combined TF-IDF; `{pubmedbert,scibert}_finetuned_results.json → stratified.{hindawi,spandidos,others}.{f1,auc}` for fine-tuned models.
-
-| Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
-|---|---|---|---|
-| Trivial Baseline | 42.95% / 50.00% | 49.44% / 50.00% | 19.61% / 50.00% |
-| TF-IDF Baseline | 39.15% / 61.20% | 84.00% / 96.26% | 47.77% / 93.49% |
-| Character N-grams | 21.39% / 61.79% | 78.95% / 94.34% | 62.18% / 93.01% |
-| PubMedBERT (frozen) | 40.15% / 65.71% | 71.11% / 88.79% | 46.74% / 86.91% |
+| Model | Hindawi | Spandidos | Others |
+|---|:---:|:---:|:---:|
+| Trivial baseline | 42.95% / 50.00% | 49.44% / 50.00% | 19.61% / 50.00% |
+| TF-IDF baseline | 39.15% / 61.20% | 84.00% / 96.26% | 47.77% / 93.49% |
+| Character n-grams | 21.89% / 60.73% | 78.95% / 93.64% | 60.15% / 92.65% |
+| MiniLM (frozen) | 24.47% / 52.81% | 70.83% / 86.57% | 46.20% / 85.10% |
+| PubMedBERT (frozen) | 38.69% / 58.92% | 77.55% / 89.09% | 44.44% / 86.13% |
 | XGBoost | 40.15% / 61.83% | 73.91% / 91.41% | 46.29% / 88.85% |
 | Linear SVM | 41.83% / 63.54% | 82.93% / 96.87% | 60.00% / 92.52% |
-| **Combined TF-IDF (C=15.0)** | **42.80% / 62.93%** | **85.00% / 96.87%** | **61.60% / 92.91%** |
+| **Combined TF-IDF** | **42.80% / 62.93%** | **85.00% / 96.87%** | **61.60% / 92.91%** |
 | PubMedBERT (fine-tuned) | 47.10% / 65.40% | 76.19% / 94.95% | 60.73% / 93.50% |
 | SciBERT (fine-tuned) | 46.37% / 66.62% | 78.05% / 96.06% | 63.89% / 93.44% |
 
-> **Key insight:** Hindawi AUC tops out at ~67% across all models including fine-tuned transformers, while Spandidos AUC reaches ~97%. This is not a tuning problem — it reflects the structural absence of semantic fraud signal in process-fraud retractions (§5.2, §5.3).
+Combined TF-IDF bootstrap 95% CIs (2,000 resamples): Hindawi F1 [34.98%, 50.18%], AUC [57.94%, 68.36%]; Spandidos F1 [70.97%, 95.45%], AUC [92.63%, 99.63%]; Others F1 [54.34%, 67.95%], AUC [89.55%, 95.83%]. On Hindawi, Combined TF-IDF (42.80%) is 0.15 pp *below* the trivial baseline (42.95%).
 
----
+### Statistical significance (validation, reference = Combined TF-IDF)
 
-### Test Set (N = 1,440 · 252 pos / 1,188 neg · one-time access, threshold frozen at 0.35)
+McNemar's test with continuity correction, Holm–Bonferroni adjustment over the five comparisons, and a 2,000-iteration paired bootstrap of ΔF1 = F1(Combined TF-IDF) − F1(model), so a positive ΔF1 favours Combined TF-IDF.
 
-The final test partition was accessed only once during original model development, after all model selection was finalized. (During the subsequent reproducibility audit — OI-4/OI-5 — the test set was re-evaluated to confirm that bug fixes reproduced identical results under the already-frozen model and threshold; no model, hyperparameter, or threshold was altered based on these verification runs.) Only the three thesis reference models were evaluated in the original one-time run (§5.5). Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+| Compared model | McNemar χ² | p | Holm p | ΔF1 mean | ΔF1 95% CI |
+|---|:---:|:---:|:---:|:---:|:---:|
+| TF-IDF baseline | 76.41 | 2.3 × 10⁻¹⁸ | 1.2 × 10⁻¹⁷ | +7.81 pp | [+4.66, +11.08] |
+| Character n-grams | 1.59 | 0.207 | 0.622 | +8.35 pp | [+4.12, +12.62] |
+| PubMedBERT (frozen) | 40.51 | 2.0 × 10⁻¹⁰ | 7.8 × 10⁻¹⁰ | +10.21 pp | [+5.89, +14.54] |
+| PubMedBERT (fine-tuned) | 1.25 | 0.264 | 0.622 | −0.10 pp | [−4.42, +3.91] |
+| SciBERT (fine-tuned) | 0.59 | 0.443 | 0.622 | −0.92 pp | [−5.30, +3.38] |
 
-#### Global Metrics
+- Combined TF-IDF is significantly better than the TF-IDF baseline and frozen PubMedBERT on both tests.
+- Against character n-grams the tests disagree. McNemar finds no difference in paired errors, but the F1 bootstrap does, because Combined TF-IDF reaches much higher recall at similar precision (thesis §4.3).
+- The fine-tuned transformers are **not** distinguishable from Combined TF-IDF: neither test is significant and both ΔF1 intervals include 0.
 
-| Model | F1 | AUC |
-|---|---|---|
-| Combined TF-IDF (min_df=5, C=15.0) | 49.45% | 79.60% |
-| Combined TF-IDF (OLD C=10.0) | 48.67% | 79.59% |
-| PubMedBERT v2 (fine-tuned) | 49.52% | 81.83% |
-| SciBERT v2 (fine-tuned) | 50.96% | 83.83% |
+### Test set (N = 1,440 · 252 / 1,188; accessed once, thresholds frozen beforehand)
 
-> The moderate drop from validation F1 to test F1 is consistent with expected variance.
->
-> **DO NOT CITE — confirmed test-set leakage in hyperparameter selection**: The older C=10.0 results are invalid as generalization estimates and are preserved only for transparency.
+Common threshold t = 0.35, the value frozen for Combined TF-IDF. Test strata: Hindawi 134/357, Spandidos 18/43, Others 100/788.
 
-#### Publisher-Stratified Metrics
+| Model | Global F1 / AUC | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
+|---|:---:|:---:|:---:|:---:|
+| Combined TF-IDF | 49.45% / 79.60% | 38.98% / 65.78% | 81.25% / 97.16% | 54.61% / 89.21% |
+| PubMedBERT (fine-tuned) | 49.24% / 81.83% | 37.74% / 66.06% | 87.50% / 94.57% | 57.14% / 90.09% |
+| SciBERT (fine-tuned) | 50.85% / 83.83% | 36.36% / 70.42% | 77.42% / 92.89% | 63.11% / 90.75% |
 
-Source: `THESIS_CHAPTER.md` §5.5 table, lines 294–296.
+At their own validation thresholds (0.28 / 0.23) the transformers reach test F1 48.52% (PubMedBERT) and 52.35% (SciBERT); AUC is unchanged. See `results/finetuned_test_results.json`.
 
-| Model | Hindawi F1 / AUC | Spandidos F1 / AUC | Others F1 / AUC |
-|---|---|---|---|
-| Combined TF-IDF (C=15.0) | 38.98% / 65.78% | 81.25% / 97.16% | 54.61% / 89.21% |
-| Combined TF-IDF (OLD C=10.0) | 37.66% / 65.71% | 81.25% / 98.06% | 54.11% / 89.44% |
-| PubMedBERT v2 | 38.17% / 66.06% | 87.50% / 94.57% | 57.27% / 90.09% |
-| SciBERT v2 | 36.52% / 70.42% | 77.42% / 92.89% | 63.11% / 90.75% |
+### Hindawi holdout (N = 1,504 · 429 / 1,075; fully withheld)
 
----
+| Model | Threshold | Precision | Recall | F1 | ROC-AUC |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Trivial baseline (always positive) | — | 28.52% | 100.00% | **44.39%** | 50.00% |
+| Combined TF-IDF | 0.35 | 46.18% | 35.20% | 39.95% | 64.18% |
+| PubMedBERT (fine-tuned) | 0.35 | 43.58% | 41.96% | 42.76% | 67.48% |
+| SciBERT (fine-tuned) | 0.35 | 46.30% | 34.97% | 39.84% | 66.77% |
+| PubMedBERT (fine-tuned) | 0.28 (own) | 42.64% | 45.22% | 43.89% | 67.48% |
+| SciBERT (fine-tuned) | 0.23 (own) | 44.52% | 44.52% | 44.52% | 66.77% |
 
-### Hindawi Holdout Generalization (N = 1,504 · 429 pos / 1,075 neg · fully withheld)
+At the common threshold no model reaches the trivial baseline. At its own threshold SciBERT exceeds it by 0.13 pp, which is not a meaningful improvement. Ranking quality stays at AUC 64–68%.
 
-Evaluated once at project end during original model development (§5.6), threshold frozen at 0.35. (During the subsequent reproducibility audit — OI-4/OI-5 — the holdout was re-evaluated to confirm bug fixes reproduced identical results under the frozen model and threshold; nothing was altered based on these runs.) Source: `THESIS_CHAPTER.md` §5.6 prose, lines 304–307 for PubMedBERT and SciBERT. The Combined TF-IDF (`C=15.0`) holdout metrics presented below are produced by the cleanly isolated `eval_tfidf_combined.py` script. The archived `C=10.0` metrics were produced by a reconstructed pipeline inferred by matching validation metrics, which suffered from test-set leakage (`results/tfidf_combined_results.json`).
+### Figures
 
-| Model | Precision | Recall | F1 | AUC |
-|---|---|---|---|---|
-| Trivial Baseline (always positive) | — | — | 44.39% | — |
-| Combined TF-IDF (C=15.0) | 46.18% | 35.20% | 39.95% | 64.18% |
-| Combined TF-IDF (OLD C=10.0) | 46.41% | 36.13% | 40.63% | 64.47% |
-| PubMedBERT v2 | 43.42% | 40.79% | 42.07% | 67.48% |
-| SciBERT v2 | 46.98% | 34.50% | 39.78% | 66.77% |
-
-> **Verdict:** All models — including fine-tuned transformers — fail to beat the trivial baseline on the Hindawi holdout. This is strong evidence against the text-semantics hypothesis for process fraud.
-
----
-
-### Visual Summary
-
-| Global Comparison (Validation) | Stratified Breakdown (Validation) |
+| Global comparison (validation) | Stratified F1 incl. fine-tuned models |
 |:---:|:---:|
-| ![Global model comparison](docs/figures/global_comparison.png) | ![Stratified comparison](docs/figures/stratified_comparison.png) |
+| ![Global comparison](docs/figures/global_comparison.png) | ![Fine-tuned models](docs/figures/finetuned_models.png) |
+| **Paired ΔF1 vs Combined TF-IDF** | **Predicted probabilities, Hindawi vs Spandidos** |
+| ![Forest plot](docs/figures/significance_forest_plot.png) | ![Probability distribution](docs/figures/probability_distribution_hindawi_spandidos.png) |
 
-| Fine-tuned model training curves | Statistical significance forest plot |
-|:---:|:---:|
-| ![Fine-tuned models](docs/figures/finetuned_models.png) | ![Forest plot](docs/figures/significance_forest_plot.png) |
-
----
-
-## Statistical Significance
-
-**McNemar's test + 95% bootstrap ΔF1 confidence intervals** comparing each model against **Combined TF-IDF (min_df=5, C=15.0)** as the reference. Computed on the **global validation set** (N=1,440). Source: `results/significance_results.json`, keys `mcnemar` and `bootstrap_ci`. The sign convention in the JSON is described in thesis §4.3 prose (lines 183–188): for the classical/frozen models, a positive bootstrap mean means Combined TF-IDF outperforms the compared model; for the fine-tuned models, a positive mean means the fine-tuned model slightly outperforms Combined TF-IDF.
-
-| Compared model | McNemar χ² | p-value | Direction | \|ΔF1\| mean | 95% CI |
-|---|---|---|---|---|---|
-| TF-IDF Baseline (min_df=2, C=1.0) | 76.41 | < 10⁻¹⁶ | Combined wins | 7.81 pp | [4.66 pp, 11.08 pp] |
-| Character N-grams | 1.59 | 0.207 | Tied | - | [4.20 pp, 13.37 pp] |
-| PubMedBERT (frozen embeddings) | 28.56 | 9.10 × 10⁻⁸ | Combined wins | 11.07 pp | [6.81 pp, 15.74 pp] |
-| PubMedBERT (fine-tuned) | 1.25 | 0.264 | Tied (Indistinguishable) | 0.10 pp | [−4.42 pp, +3.91 pp] |
-| SciBERT (fine-tuned) | 0.59 | 0.443 | Tied (Indistinguishable) | 0.92 pp | [−5.30 pp, +3.38 pp] |
-
-> **Key finding:** Fine-tuned PubMedBERT and SciBERT are **statistically indistinguishable** from Combined TF-IDF (McNemar p > 0.2 for both; bootstrap CI centers around zero). The F1 gap has been fully closed; classical text-semantics matches deep neural embeddings perfectly on this task.
+All 15 figures are in [`docs/figures/`](docs/figures/) and are regenerated by the scripts in `scripts/viz/`.
 
 ---
 
-## Notable Finding: The 100% AUC Artifact (Section 5.8)
+## Why Hindawi fails: supporting analyses
 
-During the initial research phase, every fine-tuned model achieved perfect 100% AUC separation. An eight-pass diagnostic audit failed to identify the cause — until inspection of raw tokenization residuals revealed a trivial boundary condition: trailing periods appeared in **>99.9% of negative titles** (PubMed/MEDLINE formatting convention) and in **0% of positive titles** (RWDB formatting convention). The fine-tuning backpropagation learned to classify on a single end-of-sequence punctuation token, bypassing all semantic content.
+- **Retraction reasons** (RWDB, matched by DOI, train + validation positives). Spandidos: 76.6% image duplication (239/312), 0% peer-review manipulation. Hindawi: 100% compromised peer review (291/291), 61.9% computer-generated content (180/291), 0% image duplication.
+- **Dose-response check.** Hindawi validation positives are split into subgroup A (computer-generated content, N = 82) and subgroup B (other process fraud, N = 52), each scored against all 356 Hindawi negatives. AUCs are statistically indistinguishable: Combined TF-IDF 62.89% vs 62.98%, frozen PubMedBERT 59.41% vs 58.14%, with fully overlapping CIs. Machine-generated rewording is therefore not what hides the signal.
+- **Label-permutation test** (50 seeds). Under permuted labels, validation F1 is 19.39% ± 2.19% and AUC 50.38%. The observed values (54.64% / 80.85%) lie 16.1 and 14.2 standard deviations above them; 0/50 permutations reach them.
 
-**Resolution:** A normalization pass stripped trailing periods, spaces, and semicolons from all titles and abstracts, yielding the v2 (canonical) dataset. After re-training on v2:
-- PubMedBERT: F1 = 54.76%, AUC = 83.72% (validation)
-- SciBERT: F1 = 55.68%, AUC = 84.47% (validation)
-- Label-permutation sanity check: AUC ≈ 53.7–54.7% (near-chance), confirming no structural leakage
+## The 100% AUC artifact (thesis §5.8)
 
-The pre-normalization "leaky" v1 assets are preserved in `archive/` for full reproducibility of the §5.8 audit narrative.
-
----
-
-## Quickstart
-
-```bash
-git clone https://github.com/0khacha/semantic-ceiling.git
-cd semantic-ceiling
-pip install -r requirements.txt
-
-# Run the full evaluation suite against all pre-trained models
-python scripts/eval/eval_final_test.py
-```
-
-**Dependencies** (exact strings from `requirements.txt`):
-
-```
-matplotlib>=3.10.0
-numpy>=1.24.0
-openpyxl>=3.1.0
-torch>=2.0.0
-transformers>=4.30.0
-scikit-learn>=1.2.0
-```
+An early version of the dataset (v1) gave every fine-tuned model a perfect AUC of 100%. The cause was formatting: PubMed titles (the negatives) end with a period and RWDB-sourced titles (the positives) do not, so the transformers learned the final token. The canonical v2 dataset strips trailing `.`, `;` and spaces from every title (`scripts/data_build/strip_title_punctuation.py`; abstracts are untouched). After retraining, performance fell to the values above, and the PubMedBERT/SciBERT AUCs on the "pure process fraud" subgroup fell from 100% to 62.54% / 66.44%. The v1 diagnostics are kept in [`archive/`](archive/).
 
 ---
-
-## Full Reproduction Pipeline
-
-All scripts resolve paths dynamically relative to their location and must be run from the **repository root**.
-
-### Stage 1 — Build the Dataset (`scripts/data_build/`)
-
-```bash
-python scripts/data_build/generate_negatives.py    # Query MEDLINE for matched negative candidates
-python scripts/data_build/fetch_abstracts.py       # Recover abstracts; apply oncology filter & dedup
-python scripts/data_build/validate_negatives.py    # Sanity-check negative set quality
-python scripts/data_build/split_dataset.py         # Group-aware 70/15/15 split + Hindawi holdout
-python scripts/data_build/normalize_abstracts.py   # Strip trailing-period formatting artifacts (v1→v2)
-```
-
-### Stage 2 — Train Models (`scripts/train/`)
-
-*Note: The historical `C=10.0` configuration was inferred by matching results, but the current `C=15.0` pipeline is fully backed by the `exhaustive_search.py` script.*
-
-```bash
-python scripts/train/train_classical_baselines.py  # SVM + XGBoost on TF-IDF features
-HF_HUB_OFFLINE=1 python scripts/train/finetune_pubmedbert.py        # Fine-tune microsoft/BiomedNLP-BiomedBERT-base
-HF_HUB_OFFLINE=1 python scripts/train/finetune_scibert.py           # Fine-tune allenai/scibert_scivocab_uncased
-```
-
-### Stage 3 — Evaluate (`scripts/eval/`)
-
-> [!NOTE]
-> The historical `C=10.0` configuration was inferred by matching results and suffered from test-set leakage. The current `C=15.0` evaluation uses a clean, validation-only configuration fully backed by `exhaustive_search.py`.
-
-```bash
-python scripts/eval/significance_testing.py        # McNemar's test + bootstrap CIs vs Combined TF-IDF
-python scripts/eval/run_holdout_significance.py    # Generalization tests on Hindawi holdout
-python scripts/eval/eval_final_test.py             # Isolated final test-set run (one-time access)
-```
-
-### Stage 4 — Figures (`scripts/viz/`)
-
-```bash
-python scripts/viz/generate_final_eval_figures.py  # AUC curves, stratified bar charts, forest plot
-```
-
----
-
-### Punctuation Stripping Ablation (C3)
-An ablation run comparing performance with and without trailing punctuation intact confirmed that the default `TfidfVectorizer` token pattern `(?u)\b\w\w+\b` inherently ignores trailing punctuation at word boundaries (ΔF1 < 0.003), confirming that preprocessing normalization was not driving the TF-IDF performance.
 
 ## Dataset: CPM-11K
 
-### Summary Statistics
+| Split | Positives | Negatives | Total |
+|---|:---:|:---:|:---:|
+| Train | 1,178 | 5,544 | 6,722 |
+| Validation | 252 | 1,188 | 1,440 |
+| Test | 252 | 1,188 | 1,440 |
+| Hindawi holdout | 429 | 1,075 | 1,504 |
+| **Total** | **2,111** | **8,995** | **11,106** |
 
-| Split | Positives | Negatives | Total | Notes |
-|---|---|---|---|---|
-| **Train** | 1,178 | 5,544 | 6,722 | Used for all model training |
-| **Validation** | 252 | 1,188 | 1,440 | Model selection & significance testing |
-| **Test** | 252 | 1,188 | 1,440 | One-time access after model selection frozen |
-| **Hindawi Holdout** | 429 | 1,075 | 1,504 | Fully withheld generalization set |
-| **Total (stable)** | **2,111** | **8,995** | **11,106** | 2024–2025 records excluded (retraction lag) |
+- **Positives:** oncology papers retracted for paper-mill activity, taken from the Retraction Watch Database (RWDB), with their original pre-retraction abstracts from PubMed (2,069) or Crossref (42).
+- **Negatives:** PubMed oncology papers matched on journal and year (±1). Reviews, letters, editorials and similar publication types are excluded.
+- **Class ratio** is 1 : 4.26. Publication years run from 2011 to 2023; the 41 records from 2024–2025 were excluded because retractions of recent papers are still under-reported.
+- **Splitting is group-aware.** Records sharing ≥ 2 authors, or with same-journal titles at character-3-gram Jaccard ≥ 0.7, are kept in the same split. Single-author linking was rejected because common surnames chained 979 records into one cluster.
+- **Hindawi holdout:** 50% of Hindawi records, stratified by year, are withheld entirely.
 
-Class ratio: **4.26:1** (negative:positive). Records from 2024–2025 (41 total) are separated into `data/recent_unstable_dataset.json` due to systematic undercounting of recent retractions.
+Record schema (`data/processed/cancer_pm_*.json`): `doi`, `pmid`, `title`, `abstract`, `journal` (NLM abbreviation), `year`, `label` (1 = paper mill, 0 = control), `abstract_source` (`PubMed` / `Crossref`), `oncology_verified`.
 
-### Data Schema
-
-Each record in `data/cancer_pm_dataset.json` contains:
-
-| Field | Type | Description |
-|---|---|---|
-| `doi` | string | Digital Object Identifier |
-| `pmid` | string | PubMed identifier |
-| `title` | string | Paper title (period-stripped in v2) |
-| `abstract` | string | Original pre-retraction abstract (boilerplate stripped) |
-| `journal` | string | NLM journal name |
-| `year` | int | Publication year |
-| `label` | int | `1` = paper mill, `0` = clean |
-| `abstract_source` | string | `"PubMed"` or `"Crossref"` |
-
-### Publisher Distribution (Full Dataset)
-
-Source: `docs/DATASET_CARD.md` §Publisher Distribution table.
-
-| Publisher | Positives | Negatives |
-|---|---|---|
-| Hindawi | 854 | 2,144 |
-| Spandidos | 330 | 1,532 |
-| Wiley | 196 | 1,144 |
-| Verduci Editore | 147 | 709 |
-| Taylor & Francis (Dove) | 103 | 560 |
-| Portland Press | 53 | 295 |
-| RSC | 36 | 210 |
-| Elsevier | 35 | 546 |
-| Taylor & Francis | 34 | 466 |
-| Other (32 publishers) | 323 | 1,389 |
-
-### Splitting Methodology
-
-The dataset uses **group-aware splitting** to prevent author/template leakage across partitions:
-
-1. **Author clustering:** Positive records sharing ≥2 authors are grouped into the same cluster. Single-author matching was deliberately avoided — naive single-author merging collapsed 979 records into one giant component due to common Chinese surnames.
-2. **Title similarity clustering:** Records in the same journal with character 3-gram Jaccard similarity ≥ 0.7 are merged into the same cluster.
-3. **Hindawi holdout:** 50% of all Hindawi records are withheld as a pure generalization set (year-stratified, ±1 record).
-
-**Validation:** 0 grouped/duplicate-signature records cross split boundaries.
-
-For full dataset methodology, purge rates, funding index artifacts, and known limitations, see **[DATASET_CARD.md](docs/DATASET_CARD.md)**.
+Full methodology, purge rates, per-split publisher and year tables, and known limitations: [`docs/DATASET_CARD.md`](docs/DATASET_CARD.md).
 
 ---
 
-## Repository Structure
+## Reproducing the results
+
+```bash
+git clone https://github.com/0khacha/cancer-paper-mill.git
+cd cancer-paper-mill
+pip install -r requirements.txt
+```
+
+**Data.** The dataset files are not distributed (they derive from the licensed RWDB). To run the pipeline you need:
+
+- `data/raw/rwdb/retraction_watch.csv`, the RWDB export, which you can request from the [Center for Scientific Integrity](https://retractionwatch.com/retraction-watch-database-user-guide/);
+- `data/processed/cancer_pm_{dataset,train,val,test,holdout}.json` and `journal_to_nlm.json`, the CPM-11K files.
+
+**Models.** `models/tfidf_combined.joblib` is versioned. The fine-tuned checkpoints (`models/{pubmedbert,scibert}_epoch_3.pt`, ~440 MB each) are not; regenerate them with `finetune_transformer.py`. Hugging Face models are loaded with `local_files_only=True`, so download them once beforehand.
+
+All scripts resolve paths from the repository root and can be run from any directory.
+
+```bash
+# 1. Combined TF-IDF: validation-only C sweep, training, evaluation
+python scripts/train/exhaustive_search.py           # -> results/hyperparameter_sweep_full.json (selects C=15, t=0.35)
+python scripts/train/train_tfidf_combined.py        # -> models/tfidf_combined.joblib
+python scripts/eval/eval_tfidf_combined.py          # -> results/tfidf_combined_results.json
+
+# 2. Other baselines
+python scripts/train/train_classical_baselines.py   # SVM, XGBoost -> results/classical_baselines_results.json
+python scripts/eval/eval_frozen_embeddings.py       # MiniLM, S-PubMedBert -> results/frozen_embeddings_results.json
+
+# 3. Fine-tuned transformers (GPU recommended)
+python scripts/train/finetune_transformer.py --model pubmedbert
+python scripts/train/finetune_transformer.py --model scibert
+
+# 4. Significance, final test/holdout evaluation, Hindawi analyses
+python scripts/eval/significance_testing.py         # -> results/significance_results.json
+python scripts/eval/eval_final_test.py              # -> results/finetuned_test_results.json
+python scripts/eval/hindawi_analysis.py             # -> results/hindawi_analysis_results.json
+
+# 5. Figures -> docs/figures/
+python scripts/viz/plot_hyperparameter_sweep.py
+python scripts/viz/generate_eda_figures.py
+python scripts/viz/generate_final_eval_figures.py
+python scripts/viz/generate_analysis_figures.py
+```
+
+Frozen-embedding and fine-tuned scores are cached in `models/embeddings/` and `models/predictions/` (git-ignored); delete them to force recomputation.
+
+**Dataset construction** (`scripts/data_build/`). `generate_negatives.py` → `validate_negatives.py` → `fetch_abstracts.py` → `split_dataset.py` → `strip_title_punctuation.py` write `data/interim/` and then `data/processed/`. These scripts query PubMed/Crossref and are included for transparency. They cannot be re-run end-to-end from this repository: their input `data/interim/clean_positives.json` (the RWDB paper-mill selection) and the journal → NLM map were produced by steps that are not versioned, and the live APIs return different results over time. `normalize_abstracts.py` builds the `*_normalized.json` files used only by the formatting-artifact ablation (thesis §5.9).
+
+---
+
+## Repository structure
 
 ```
-semantic-ceiling/
-├── .gitignore
-├── LICENSE
-├── README.md
-├── requirements.txt
-├── data/                       ← Git-ignored, local only
-│   ├── processed/              ← Canonical v2 dataset
-│   │   ├── cancer_pm_dataset.json
-│   │   └── recent_unstable_dataset.json
-│   └── raw/
-│       └── rwdb/
-│           └── retraction_watch.csv   ← Must be obtained separately (see below)
+├── README.md · AUDIT.md · LICENSE · requirements.txt
 ├── docs/
-│   ├── DATASET_CARD.md         ← Full methodology, distributions, limitations
-│   ├── THESIS_CHAPTER.md       ← Complete thesis chapter (English)
-│   └── figures/                ← All publication-ready figures (10 files)
-├── models/                     ← Fine-tuned v2 checkpoints (.pt, Git-ignored)
-├── results/
-│   ├── all_evaluation_results.json          ← Hindawi holdout generalization experiments
-│   ├── classical_baselines_results.json     ← SVM + XGBoost validation metrics
-│   ├── pubmedbert_finetuned_results.json    ← PubMedBERT epoch history + validation metrics
-│   ├── scibert_finetuned_results.json       ← SciBERT epoch history + validation metrics
-│   ├── significance_results.json           ← McNemar + bootstrap CIs vs Combined TF-IDF
-│   └── tfidf_combined_results.json         ← Combined TF-IDF val/test/holdout metrics
+│   ├── THESIS_CHAPTER.md        thesis chapter (English)
+│   ├── DATASET_CARD.md          dataset methodology and limitations
+│   ├── figures/                 15 figures, all script-generated
+│   └── audit_logs/              console logs of the result-generating runs
+├── results/                     every reported number (JSON)
+│   └── exploratory_training_volume/   exploratory, not part of the main protocol
+├── models/
+│   └── tfidf_combined.joblib    canonical Combined TF-IDF (other checkpoints git-ignored)
 ├── scripts/
-│   ├── audit/                  ← Verification outputs (1 file)
-│   │   └── others_ci_verification.json
-│   ├── data_build/             ← Dataset construction pipeline (5 scripts + 2 utils)
-│   │   ├── fetch_abstracts.py
-│   │   ├── generate_negatives.py
-│   │   ├── normalize_abstracts.py
-│   │   ├── split_dataset.py
-│   │   ├── validate_negatives.py
-│   │   └── utils/
-│   │       ├── artifacts.py
-│   │       └── stats.py
-│   ├── eval/                   ← Evaluation & significance testing (6 scripts)
-│   │   ├── compute_test_strata_bootstrap_ci.py
-│   │   ├── eval_final_test.py
-│   │   ├── eval_tfidf_combined.py
-│   │   ├── run_holdout_significance.py
-│   │   └── significance_testing.py
-│   ├── train/                  ← Model training scripts (5 scripts)
-│   │   ├── exhaustive_search.py       ← Validation-only C search (C=15.0 selection)
-│   │   ├── finetune_pubmedbert.py
-│   │   ├── finetune_scibert.py
-│   │   ├── train_classical_baselines.py
-│   │   └── train_tfidf_combined.py
-│   └── viz/                    ← Figure generation (2 scripts)
-│       ├── generate_eda_figures.py
-│       └── generate_final_eval_figures.py
-└── archive/                    ← Preserved v1 (leaky) artifacts for §5.8 audit
-    ├── diagnostics/             ← 17 diagnostic scripts
-    ├── leaky_data_v1/           ← Git-ignored
-    ├── leaky_models_v1/         ← Git-ignored
-    └── leaky_results_v1/        ← 4 JSON result files
+│   ├── common.py                shared paths, data loading, publisher strata, metrics
+│   ├── data_build/              dataset construction (see above)
+│   ├── train/                   exhaustive_search, train_tfidf_combined, train_classical_baselines, finetune_transformer
+│   ├── eval/                    eval_tfidf_combined, eval_frozen_embeddings, significance_testing,
+│   │                            eval_final_test, hindawi_analysis, exploratory_hindawi_training_volume
+│   └── viz/                     figure generation
+├── data/                        git-ignored: raw/ (RWDB), interim/, processed/ (CPM-11K)
+└── archive/                     v1 (pre-fix) diagnostics and results kept for the §5.8 audit trail
 ```
 
----
-
-## Data Access & Reproducibility
-
-### Large File Exclusions
-
-The following are **local-only** (excluded via `.gitignore`) due to file size and licensing:
-
-- Raw RWDB CSV (`data/raw/rwdb/retraction_watch.csv`)
-- Processed v2 dataset JSON files (`data/processed/`)
-- Archived v1 leaky dataset (`archive/leaky_data_v1/`)
-- All `.pt` model checkpoints (`models/`, `archive/leaky_models_v1/`)
-
-### Reproducing from Scratch
-
-1. Request access to the **Retraction Watch Database (RWDB)** at [retractionwatch.com](https://retractionwatch.com/retraction-watch-database-user-guide/).
-2. Save the CSV export to `data/raw/rwdb/retraction_watch.csv`.
-3. Execute the four pipeline stages sequentially (see **Full Reproduction Pipeline** above).
-
----
+`scripts/eval/exploratory_hindawi_training_volume.py` retrains Combined TF-IDF on train + holdout to test whether more Hindawi data helps. Validation/test Hindawi F1 rises to 43.70% / 47.62% (trivial baseline 42.95% / 42.88%; AUC 69.8% / 71.5%). It is exploratory: the holdout is consumed for training, so the result must not be compared with the holdout numbers above.
 
 ## Attribution
 
-- **Retraction Watch Database (RWDB):** Positive labels are extracted from the RWDB, courtesy of the [Center for Scientific Integrity](https://retractionwatch.com/). Use of the RWDB is subject to their terms of service.
-- **MEDLINE / PubMed:** Negative class metadata is queried from the [NLM MEDLINE/PubMed](https://pubmed.ncbi.nlm.nih.gov/) database via the Entrez API.
-
----
+- **Retraction Watch Database:** positive labels and retraction reasons, courtesy of the [Center for Scientific Integrity](https://retractionwatch.com/); use is subject to their terms.
+- **MEDLINE/PubMed** (NLM, via the Entrez E-utilities) and **Crossref**: article metadata and abstracts.
+- Pre-trained models: `microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext`, `allenai/scibert_scivocab_uncased`, `pritamdeka/S-PubMedBert-MS-MARCO`, `sentence-transformers/all-MiniLM-L6-v2`.
 
 ## License
 
-See [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

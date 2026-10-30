@@ -1,16 +1,28 @@
+"""
+Formatting-artifact ablation inputs (thesis §5.9).
+
+Applies Unicode NFC, non-breaking-space replacement, HTML-entity decoding,
+canonicalisation of structured-abstract section headers (BACKGROUND:, METHODS:,
+...) and whitespace collapsing to titles and abstracts of the canonical v2
+splits. The resulting *_normalized.json files serve only as an ablation of
+formatting artifacts; every reported model is trained and evaluated on the
+un-normalised v2 splits.
+
+Input:  data/processed/cancer_pm_{train,val,test,holdout}.json
+Output: data/processed/cancer_pm_{split}_normalized.json, normalization_audit.json
+"""
 import json
 import os
 import re
 import html
 import unicodedata
 
-# Set up paths
-train_path = "data/final/cancer_pm_train.json"
-val_path = "data/final/cancer_pm_val.json"
-test_path = "data/final/cancer_pm_test.json"
-holdout_path = "data/final/cancer_pm_holdout.json"
-
-output_dir = "data/final"
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+output_dir = os.path.join(project_root, "data", "processed")
+train_path = os.path.join(output_dir, "cancer_pm_train.json")
+val_path = os.path.join(output_dir, "cancer_pm_val.json")
+test_path = os.path.join(output_dir, "cancer_pm_test.json")
+holdout_path = os.path.join(output_dir, "cancer_pm_holdout.json")
 audit_path = os.path.join(output_dir, "normalization_audit.json")
 
 # Define header patterns

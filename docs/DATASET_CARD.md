@@ -9,15 +9,16 @@ The Cancer Paper Mill (CPM-11K) dataset is a verified labeled corpus constructed
 *   **Dataset Ratio:** 4.26:1 (Deduplicated unique DOIs)
 
 ## Data Representation
-Each record in `data/cancer_pm_dataset.json` contains:
+Each record in `data/processed/cancer_pm_dataset.json` (and in the split files `cancer_pm_{train,val,test,holdout}.json`) contains:
 *   `doi`: Digital Object Identifier.
 *   `pmid`: PubMed identifier.
-*   `title`: Paper Title.
+*   `title`: Paper title, with trailing periods/semicolons/spaces removed (v2; see thesis §5.8).
 *   `abstract`: Original un-retracted scientific abstract (retraction boilerplates stripped).
 *   `journal`: Target NLM journal name.
 *   `year`: Publication Year.
 *   `label`: `1` (positive paper-mill case), `0` (negative clean case).
-*   `abstract_source`: Source of abstract (`PubMed` or `Crossref`).
+*   `abstract_source`: Source of abstract (`PubMed` or `Crossref`; all 42 Crossref abstracts are positives).
+*   `oncology_verified`: `true` for every retained record (title + abstract matched an oncology keyword).
 
 ---
 
@@ -34,7 +35,7 @@ To address publisher distribution differences between positive and negative clas
 
 ### 2. Resolution of 2024-2025 (Retraction-Reporting Lag)
 *   **Mechanism:** Positive counts for very recent years (2024: 6 pos; 2025: 0 pos) are structurally undercounted due to **retraction-reporting lag**. It takes between 1 to 3+ years for journal investigations, whistleblower flags, and official publisher retractions to occur and be indexed in Retraction Watch (RWDB).
-*   **Decision:** All 41 records from 2024 and 2025 (6 positives, 35 negatives) have been **excluded** from the main training/evaluation dataset to prevent severe year-matched class imbalance. They are moved to a separate file: `data/recent_unstable_dataset.json` for independent testing of recent literature.
+*   **Decision:** All 41 records from 2024 and 2025 (6 positives, 35 negatives) have been **excluded** from the main training/evaluation dataset to prevent severe year-matched class imbalance. They are not part of any split and are not distributed with this repository.
 
 ### 3. Purge Rate Asymmetry & Selection Bias
 *   We observed a significant asymmetry in purge rates: **17.0% for positives (434 / 2,551)** vs **2.6% for negatives (243 / 9,273)**.
@@ -90,7 +91,7 @@ This concentration is a mathematically necessary consequence of preventing autho
 ## Dataset Distributions (Post-Purge Stable)
 
 ### Publisher Distribution
-The post-purge stable distributions across splits. The "Other" row accounts for 32 distinct publishers with low-volume counts:
+The post-purge stable distributions across splits. The "Other" row pools the remaining 36 publishers (45 distinct publishers in total):
 
 | Publisher | Train (Pos/Neg) | Val (Pos/Neg) | Test (Pos/Neg) | Holdout (Pos/Neg) |
 | :--- | :---: | :---: | :---: | :---: |
@@ -103,7 +104,7 @@ The post-purge stable distributions across splits. The "Other" row accounts for 
 | **RSC** | 16 / 71 | 11 / 69 | 9 / 70 | 0 / 0 |
 | **Elsevier** | 34 / 402 | 0 / 74 | 1 / 70 | 0 / 0 |
 | **Taylor & Francis** | 28 / 408 | 2 / 28 | 4 / 30 | 0 / 0 |
-| **Other (32 low-volume)** | 282 / 938 | 20 / 224 | 21 / 227 | 0 / 0 |
+| **Other (36 publishers)** | 282 / 938 | 20 / 224 | 21 / 227 | 0 / 0 |
 | **Total** | **1,178 / 5,544** | **252 / 1,188** | **252 / 1,188** | **429 / 1,075** |
 
 ### Year Distribution
@@ -119,7 +120,7 @@ The post-purge stable distributions across splits. The "Other" row accounts for 
 | 2017 | 171 / 490 | 16 / 86 | 14 / 80 | 0 / 0 |
 | 2018 | 184 / 1,173 | 24 / 191 | 24 / 195 | 0 / 1 |
 | 2019 | 249 / 1,243 | 44 / 270 | 40 / 275 | 2 / 6 |
-| 2020 | 181 / 1,200 | 21 / 148 | 27 / 153 | 13 / 53 |
+| 2020 | 181 / 1,200 | 21 / 148 | 27 / 153 | 13 / 125 |
 | 2021 | 94 / 535 | 32 / 152 | 31 / 145 | 97 / 323 |
 | 2022 | 121 / 271 | 94 / 191 | 94 / 188 | 298 / 552 |
 | 2023 | 13 / 51 | 5 / 22 | 6 / 24 | 18 / 65 |

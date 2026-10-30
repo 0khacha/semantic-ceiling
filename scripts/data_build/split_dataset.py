@@ -25,11 +25,11 @@ csv.field_size_limit(sys.maxsize)
 random.seed(42)
 
 # Load stable dataset
-with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_dataset.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_dataset.json'), 'r', encoding='utf-8') as f:
     dataset = json.load(f)
 
 # Load raw positives for metadata
-with open(os.path.join(project_root, 'data', 'clean_positives.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'clean_positives.json'), 'r', encoding='utf-8') as f:
     clean_positives = json.load(f)
 
 # Map positive DOIs to metadata
@@ -62,7 +62,7 @@ with open(os.path.join(project_root, 'data', 'raw', 'rwdb', 'retraction_watch.cs
                 p = "Hindawi"
             journal_to_publisher[j] = p
 
-with open(os.path.join(project_root, 'data', 'final', 'journal_to_nlm.json'), 'r', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'processed', 'journal_to_nlm.json'), 'r', encoding='utf-8') as f:
     j2nlm = json.load(f)
 nlm2raw = {v: k for k, v in j2nlm.items()}
 
@@ -104,7 +104,7 @@ pool_records = non_hindawi_records + hindawi_pool
 print(f"\nNon-Holdout Main Pool Size: {len(pool_records)}")
 
 # Save Hindawi holdout
-with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_holdout.json'), 'w', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_holdout.json'), 'w', encoding='utf-8') as f:
     json.dump(hindawi_holdout, f, indent=2)
 
 # =====================================================================
@@ -253,11 +253,11 @@ val_records = [pool_records[i] for i in val_indices]
 test_records = [pool_records[i] for i in test_indices]
 
 # Save splits
-with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_train.json'), 'w', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_train.json'), 'w', encoding='utf-8') as f:
     json.dump(train_records, f, indent=2)
-with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_val.json'), 'w', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_val.json'), 'w', encoding='utf-8') as f:
     json.dump(val_records, f, indent=2)
-with open(os.path.join(project_root, 'data', 'final', 'cancer_pm_test.json'), 'w', encoding='utf-8') as f:
+with open(os.path.join(project_root, 'data', 'interim', 'cancer_pm_test.json'), 'w', encoding='utf-8') as f:
     json.dump(test_records, f, indent=2)
 
 # =====================================================================

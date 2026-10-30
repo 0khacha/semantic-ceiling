@@ -1,0 +1,7 @@
+Model                           F1     chi2          p     p_holm  dF1 [95% CI]
+TF-IDF Baseline             0.4691   76.409   2.31e-18   1.15e-17  +7.81 [+4.66, +11.08]
+Char N-grams                0.4634    1.590      0.207      0.622  +8.35 [+4.12, +12.62]
+PubMedBERT (frozen)         0.4451   40.509   1.96e-10   7.83e-10  +10.21 [+5.89, +14.54]
+PubMedBERT (fine-tuned)     0.5476    1.249      0.264      0.622  -0.10 [-4.42, +3.91]
+SciBERT (fine-tuned)        0.5568    0.587      0.443      0.622  -0.92 [-5.30, +3.38]
+Saved results\significance_results.json

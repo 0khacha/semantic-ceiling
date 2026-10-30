@@ -7,8 +7,8 @@ and threshold=0.36 configuration. It was written to forensically reproduce and a
 older version of the thesis metrics.
 
 DO NOT USE this script to generate current metrics. 
-The active canonical pipeline uses C=15.0, no class_weight, and threshold=0.35, 
-as evaluated in `eval_final_test.py` and `significance_testing.py`.
+The canonical pipeline uses C=15.0, class_weight='balanced' and threshold=0.35
+(scripts/train/train_tfidf_combined.py, scripts/eval/eval_tfidf_combined.py).
 
 Diagnostic script for:
 1. Issue 1 root cause (class_weight discrepancy)
